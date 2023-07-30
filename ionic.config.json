@@ -1,0 +1,7 @@
+{
+  "name": "gmuseo",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
