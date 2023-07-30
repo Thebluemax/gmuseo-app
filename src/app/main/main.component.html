@@ -3,15 +3,18 @@
     <ion-grid>
       <ion-row>
         <ion-col>
-       <gm-main-graffiti [graffiti]="getMainGraffiti()"></gm-main-graffiti>
+       <gm-main-graffiti 
+       [graffiti]="getMainGraffiti()"></gm-main-graffiti>
         </ion-col>
       </ion-row>
     </ion-grid>
     <ion-grid>
       <ion-row>
-        <ion-col>las mont 1</ion-col>
-        <ion-col>las mont 1</ion-col>
-        <ion-col>las mont 1</ion-col>
+        <ion-col>
+          <gm-monthly-graffitis 
+          [graffitiList]="getMonthlyList()"></gm-monthly-graffitis>
+        </ion-col>
+        
       </ion-row>
     </ion-grid>
     <ion-grid>

@@ -3,7 +3,7 @@ import { IonImg, IonicModule } from '@ionic/angular';
 
 import { MainGraffitiComponent } from './main-graffiti.component';
 
-fdescribe('MainGraffitiComponent', () => {
+describe('MainGraffitiComponent', () => {
   let component: MainGraffitiComponent;
   let fixture: ComponentFixture<MainGraffitiComponent>;
 

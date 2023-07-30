@@ -1,0 +1,13 @@
+<div id="monthly-list">
+  <div class="list-component">
+    <div *ngFor="let graffiti of graffitiList" 
+    class="item-container">
+    <img class="monthly-list-img" 
+    [src]="graffiti.image"
+     [alt]="graffiti.description">
+      <div class="item-text">
+        <h2>{{ graffiti.name }}</h2>
+      </div>
+    </div>
+  </div>
+</div>
