@@ -1,0 +1,12 @@
+#main-graffiti {
+    position: relative;
+    .title-layer {
+        background-color: rgba(0, 0, 0, 0.5);
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: min-content;
+        z-index: 1;
+    }
+}

@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { environment } from "../environments/environment";
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
@@ -6,7 +7,7 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   public appPages = [
-    { title: 'Inbox', url: '/folder/inbox', icon: 'mail' },
+    { title: 'Main', url: '/main', icon: 'home' },
     { title: 'Outbox', url: '/folder/outbox', icon: 'paper-plane' },
     { title: 'Favorites', url: '/folder/favorites', icon: 'heart' },
     { title: 'Archived', url: '/folder/archived', icon: 'archive' },
@@ -14,5 +15,8 @@ export class AppComponent {
     { title: 'Spam', url: '/folder/spam', icon: 'warning' },
   ];
   public labels = ['Family', 'Friends', 'Notes', 'Work', 'Travel', 'Reminders'];
-  constructor() {}
+  public appName = environment.appName;
+  constructor() {
+
+  }
 }
