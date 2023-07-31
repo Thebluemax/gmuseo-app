@@ -19,7 +19,7 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v2
       with:
-        node-version: 14
+        node-version: 16
 
     - name: Install Dependencies
       run: npm install
@@ -29,7 +29,7 @@ jobs:
       with:
         context: .  # Ruta al directorio que contiene tu Dockerfile
         push: true
-        tags: thebluemax/gmuseoApp:develop-$(date +'%Y%m%d%H%M%S')
+        tags: thebluemax/gmuseoApp:develop
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
