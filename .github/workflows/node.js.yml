@@ -24,9 +24,9 @@ jobs:
     - name: Install Dependencies
       run: npm install
     
-     - name: Generate Docker Image Tag
-       run: ./generate_tag.sh > image_tag.txt
-       id: image_tag
+    - name: Generate Docker Image Tag
+      run: ./generate_tag.sh > image_tag.txt
+      id: image_tag
 
     - name: Build Docker Image and Push to GitHub Container Registry
       uses: docker/build-push-action@v2
