@@ -1,0 +1,35 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+
+name: CI-buid
+
+on:
+  push:
+    branches:
+      - develop
+      
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: 14
+
+    - name: Install Dependencies
+      run: npm install
+
+    - name: Build Docker Image and Push to GitHub Container Registry
+      uses: docker/build-push-action@v2
+      with:
+        context: .  # Ruta al directorio que contiene tu Dockerfile
+        push: true
+        tags: thebluemax/gmuseoApp:develop-$(date +'%Y%m%d%H%M%S')
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
