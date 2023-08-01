@@ -36,7 +36,7 @@ jobs:
       with:
         context: .  # Ruta al directorio que contiene tu Dockerfile
         push: true
-        tags: thebluemax/gmuseo-app:${{ steps.image_tag.outputs.stdout }}
+        tags: thebluemax/gmuseo-app:${{ steps.read_image_tag.outputs.TAG }}
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
