@@ -26,7 +26,10 @@ jobs:
     
     - name: Generate Docker Image Tag
       run: bash ops/generate_tag.sh
-      id: image_tag
+    
+    - name: Read Image Tag from File
+      id: read_image_tag
+      run: echo ::set-output name=TAG::$(cat image_tag.txt)
 
     - name: Build Docker Image and Push to GitHub Container Registry
       uses: docker/build-push-action@v2
