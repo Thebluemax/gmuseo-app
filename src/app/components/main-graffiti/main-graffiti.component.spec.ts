@@ -1,7 +1,9 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { IonImg, IonicModule } from '@ionic/angular';
+import { GraffitiMock } from "../../mocks/graffti.mock";
 
 import { MainGraffitiComponent } from './main-graffiti.component';
+import { Graffiti } from 'src/app/models/graffiti';
 
 describe('MainGraffitiComponent', () => {
   let component: MainGraffitiComponent;
@@ -27,18 +29,15 @@ describe('MainGraffitiComponent', () => {
   });
 
   it("should have a graffiti", async () => {
-    component.graffiti = {
-      name: 'Main Graffiti',
-      description: 'This is the main graffiti',
-      image: 'http://localhost:9444/ui/graffitis/242bc7081155cbc9a3fe6e78fdcdcb0b_700.jpg',
-      id: 1
-    } 
+    const graffitiMock:Graffiti = new GraffitiMock().getGraffiti();
+    component.graffiti = graffitiMock;
     fixture.detectChanges();
     expect(component.graffiti).toBeTruthy();
     const app = fixture.nativeElement;
-    const image = app.querySelectorAll('ion-img');
+    const image = app.querySelectorAll('img');
     console.log(image[0]);
-   await expect(image[0].getAttribute('ng-reflect-src')).toContain('http://localhost:9444/ui/graffitis/242bc7081155cbc9a3fe6e78fdcdcb0b_700.jpg');
-    expect(image[0].getAttribute('ng-reflect-alt')).toContain('This is the main graffiti');
+   await expect(image[0].getAttribute('src')).toContain(graffitiMock.image);
+    expect(image[0].getAttribute('alt')).toContain(graffitiMock.description);
+    expect(image[0].getAttribute('title')).toContain(graffitiMock.name);
   });
 });

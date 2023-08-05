@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Graffiti } from '../models/graffiti';
+import { Category } from '../models/category';
+import { CategoryMock } from '../mocks/category.mock';
 
 @Component({
   selector: 'app-main',
@@ -48,6 +50,8 @@ id: 15
 } 
   ];
 
+  private categoryList: Category[] = new CategoryMock().getCategoryList();
+
   constructor() { }
 
   ngOnInit() {}
@@ -58,6 +62,10 @@ id: 15
 
   getMonthlyList() {
     return this.monthlyList;
+  }
+
+  getCategoryList() {
+    return this.categoryList;
   }
 
 }

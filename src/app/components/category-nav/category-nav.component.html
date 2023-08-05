@@ -1,0 +1,19 @@
+<div>
+  <ion-grid>
+    <ion-row>
+      <ion-col size="12" size-md="6" size-lg="4" *ngFor="let category of categories">
+        <ion-card>
+          <div>
+            <img [src]="category?.image"
+            [alt]="category?.description"
+            [title]=" category?.name">
+          </div>
+          <div>
+            <h3>{{ category?.name | uppercase }}</h3>
+            <p>{{ category?.description }}</p>
+          </div>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</div>
