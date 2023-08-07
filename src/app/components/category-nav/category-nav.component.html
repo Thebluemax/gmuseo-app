@@ -1,16 +1,17 @@
 <div>
   <ion-grid>
-    <ion-row>
-      <ion-col size="12" size-md="6" size-lg="4" *ngFor="let category of categories">
+    <ion-row *ngFor="let categoryRow of listProcessed">
+      <ion-col size="6" size-md="6" size-lg="6" *ngFor="let category of categoryRow">
         <ion-card>
-          <div>
-            <img [src]="category?.image"
-            [alt]="category?.description"
-            [title]=" category?.name">
-          </div>
-          <div>
-            <h3>{{ category?.name | uppercase }}</h3>
-            <p>{{ category?.description }}</p>
+          <div class="category-canvas">
+            <div class="category-img">
+              <img [src]="category?.image"
+              [alt]="category?.description"
+              [title]=" category?.name">
+            </div>
+            <div class="category-header">
+              <h3>{{ category?.name | uppercase }}</h3>
+            </div>
           </div>
         </ion-card>
       </ion-col>

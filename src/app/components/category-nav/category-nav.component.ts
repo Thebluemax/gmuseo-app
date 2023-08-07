@@ -7,9 +7,18 @@ import { Category } from 'src/app/models/category';
   styleUrls: ['./category-nav.component.scss'],
 })
 export class CategoryNavComponent  implements OnInit {
+  listProcessed: Category[][] = [];
   @Input() categories: Category[] = [];
   constructor() { }
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.listProcessed = this.orderListByColumns(this.categories);
+  }
+
+  orderListByColumns(list: Category[]) {
+    return list.map((e, i) => {
+     return i%2 == 0 ? list.slice(i, i + 2) : [];
+    }).filter((e) => e.length === 2 || e.length === 1);
+  }
 
 }
