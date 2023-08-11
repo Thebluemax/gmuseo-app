@@ -1,0 +1,8 @@
+{
+    "typescript.tsserver.watchOptions": {
+
+    },
+    "postcssSorting.config": {
+        "properties-order": "alphabetical",
+      }
+}

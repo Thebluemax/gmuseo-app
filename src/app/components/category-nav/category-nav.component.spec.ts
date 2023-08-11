@@ -3,15 +3,17 @@ import { IonicModule } from '@ionic/angular';
 
 import { CategoryNavComponent } from './category-nav.component';
 import { CategoryMock } from 'src/app/mocks/category.mock';
+import { Router, RouterModule } from '@angular/router';
+import { RouterTestingModule } from '@angular/router/testing';
 
-fdescribe('CategoryNavComponent', () => {
+describe('CategoryNavComponent', () => {
   let component: CategoryNavComponent;
   let fixture: ComponentFixture<CategoryNavComponent>;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ CategoryNavComponent ],
-      imports: [IonicModule.forRoot()]
+      declarations: [ CategoryNavComponent, ],
+      imports: [IonicModule.forRoot(), RouterModule.forRoot([]) ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CategoryNavComponent);

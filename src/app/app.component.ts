@@ -6,17 +6,44 @@ import { environment } from "../environments/environment";
   styleUrls: ['app.component.scss'],
 })
 export class AppComponent {
+  themeToggle:boolean = false;
   public appPages = [
     { title: 'Main', url: '/main', icon: 'home' },
-    { title: 'Outbox', url: '/folder/outbox', icon: 'paper-plane' },
+    { title: 'Category', url: '/category', icon: 'paper-plane' },
     { title: 'Favorites', url: '/folder/favorites', icon: 'heart' },
     { title: 'Archived', url: '/folder/archived', icon: 'archive' },
-   // { title: 'Trash', url: '/folder/trash', icon: 'trash' },
-  //  { title: 'Spam', url: '/folder/spam', icon: 'warning' },
   ];
-  public labels = ['Family', 'Friends', 'Notes', 'Work', 'Travel', 'Reminders'];
-  public appName = environment.appName;
-  constructor() {
 
+  public appName = environment.appName;
+  ngOnInit() {
+    // Use matchMedia to check the user preference
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+
+    // Initialize the dark theme based on the initial
+    // value of the prefers-color-scheme media query
+    this.initializeDarkTheme(prefersDark.matches);
+
+    // Listen for changes to the prefers-color-scheme media query
+    prefersDark.addEventListener('change', (mediaQuery) => this.initializeDarkTheme(mediaQuery.matches));
+  }
+
+  // Check/uncheck the toggle and update the theme based on isDark
+  initializeDarkTheme(isDark:boolean) {
+    this.themeToggle = isDark;
+    this.toggleDarkTheme(isDark);
+  }
+
+  // Listen for the toggle check/uncheck to toggle the dark theme
+  toggleChange(ev: any) {
+    this.toggleDarkTheme(ev.detail.checked);
+  }
+
+  // Add or remove the "dark" class on the document body
+  toggleDarkTheme(shouldAdd:any = false) {
+    document.body.classList.toggle('dark', shouldAdd);
+  }
+
+  getAppPages() {
+    return this.appPages;
   }
 }

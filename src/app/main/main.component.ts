@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Graffiti } from '../models/graffiti';
 import { Category } from '../models/category';
 import { CategoryMock } from '../mocks/category.mock';
+import { GraffitiMock } from '../mocks/graffti.mock';
 
 @Component({
   selector: 'app-main',
@@ -10,45 +11,9 @@ import { CategoryMock } from '../mocks/category.mock';
 })
 export class MainComponent  implements OnInit {
 
-  private mainGraffiti: Graffiti = {
-    name: 'Main Graffiti',
-    description: 'This is the main graffiti',
-    image: 'http://localhost:9444/ui/graffitis/242bc7081155cbc9a3fe6e78fdcdcb0b_1900.jpg',
-    id: 1
-  } 
+  private mainGraffiti: Graffiti = new GraffitiMock().getGraffiti();
 
-  private monthlyList: Graffiti[] = [
-{
-    name: 'Main Graffiti',
-    description: 'This is the main graffiti',
-    image: 'http://localhost:9444/ui/graffitis/242bc7081155cbc9a3fe6e78fdcdcb0b_350.jpg',
-    id: 1
-  } ,
-{
-  name: 'Main Graffiti',
-  description: 'This is the main graffiti',
-  image: 'http://localhost:9444/ui/graffitis/242bc7081155cbc9a3fe6e78fdcdcb0b_350.jpg',
-  id: 12
-} ,
-{
-name: 'Main Graffiti',
-description: 'This is the main graffiti',
-image: 'http://localhost:9444/ui/graffitis/242bc7081155cbc9a3fe6e78fdcdcb0b_350.jpg',
-id: 13
-} ,
-{
-name: 'Main Graffiti',
-description: 'This is the main graffiti',
-image: 'http://localhost:9444/ui/graffitis/242bc7081155cbc9a3fe6e78fdcdcb0b_350.jpg',
-id: 14
-} ,
-{
-name: 'Main Graffiti',
-description: 'This is the main graffiti',
-image: 'http://localhost:9444/ui/graffitis/242bc7081155cbc9a3fe6e78fdcdcb0b_350.jpg',
-id: 15
-} 
-  ];
+  private monthlyList: Graffiti[] = new GraffitiMock().getGraffitiList();
 
   private categoryList: Category[] = new CategoryMock().getCategoryList();
 
