@@ -35,7 +35,6 @@ describe('MainGraffitiComponent', () => {
     expect(component.graffiti).toBeTruthy();
     const app = fixture.nativeElement;
     const image = app.querySelectorAll('img');
-    console.log(image[0]);
    await expect(image[0].getAttribute('src')).toContain(graffitiMock.image);
     expect(image[0].getAttribute('alt')).toContain(graffitiMock.description);
     expect(image[0].getAttribute('title')).toContain(graffitiMock.name);
