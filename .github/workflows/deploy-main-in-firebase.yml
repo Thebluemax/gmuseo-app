@@ -19,4 +19,4 @@ jobs:
       - name: Deploy to Firebase Hosting
         run: firebase deploy --only hosting
         env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_GMUSEO_44A34 }}
