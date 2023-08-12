@@ -1,3 +1,8 @@
+<ion-header>
+  <ion-toolbar>
+   <div class="brand-logo"></div>
+  </ion-toolbar>
+</ion-header>
 <ion-content [fullscreen]="true">
   <div id="container">
     <ion-grid>
@@ -16,13 +21,8 @@
         </ion-col>
         
       </ion-row>
-    </ion-grid>
-    <ion-grid>
-      <ion-row>
-        <ion-col>tipes</ion-col>
-        <ion-col>2</ion-col>
-        <ion-col>3</ion-col>
-      </ion-row>
-    </ion-grid>
+      </ion-grid>
+
+      <gm-category-nav [categories]="getCategoryList()"></gm-category-nav>
   </div>
 </ion-content>

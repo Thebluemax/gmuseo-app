@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { RouteReuseStrategy } from '@angular/router';
+import { RouteReuseStrategy, RouterModule } from '@angular/router';
 
 import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 
@@ -9,10 +9,11 @@ import { AppRoutingModule } from './app-routing.module';
 import { MainComponent } from './main/main.component';
 import { MainGraffitiComponent } from './components/main-graffiti/main-graffiti.component';
 import { MonthlyComponent } from './components/monthly/monthly.component';
+import { CategoryNavComponent } from './components/category-nav/category-nav.component';
 
 @NgModule({
-  declarations: [AppComponent, MainComponent,MainGraffitiComponent, MonthlyComponent],
-  imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule],
+  declarations: [AppComponent, MainComponent,MainGraffitiComponent, MonthlyComponent, CategoryNavComponent],
+  imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule, RouterModule],
   providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }],
   bootstrap: [AppComponent],
 })

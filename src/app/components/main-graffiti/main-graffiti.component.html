@@ -1,6 +1,7 @@
 <div id="main-graffiti">
-  <ion-img [src]="graffiti?.image"
-  [alt]="graffiti?.description"></ion-img>
+  <img [src]="graffiti?.image"
+  [alt]="graffiti?.description"
+  [title]=" graffiti?.name">
         <div class="title-layer ion-padding-start">
     <h1>{{ graffiti?.name | uppercase }}</h1>
     <div><p>

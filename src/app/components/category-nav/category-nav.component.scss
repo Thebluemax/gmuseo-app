@@ -1,0 +1,28 @@
+.category-canvas {
+    position: relative;
+    .category-header {
+        background-size: cover;
+        left: 0;
+        position: absolute;
+        top: 0;
+        width: 100%;
+        z-index: 1;
+        &>h3 {
+            color: #fff;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+            padding: 0;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            text-transform: uppercase;
+            width: 100%;
+        }
+    }
+    .category-img {
+        height: 100%;
+        &>img {
+            object-fit: cover;
+            width: 100%;
+        }   
+    }
+}

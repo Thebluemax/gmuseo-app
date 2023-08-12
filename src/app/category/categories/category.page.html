@@ -1,0 +1,29 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>category</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content  class="ion-padding">
+  <ion-grid>
+    <ion-row *ngFor="let item of getCategories()">
+      <ion-col [size]="12">
+        <div class="banner" [style.backgroundImage]="'url(' + item.image + ')'" >
+          <span>
+            {{ item.name }}
+          </span>
+        </div>
+      </ion-col>
+          <ion-col [size]="4" *ngFor="let subItem of item.graffitis" class="ion-padding">
+            <div class="graffiti-thumb">
+              <div>
+                <img [src]="subItem.image" width="100%"  [style.height]="'max-content'">
+              </div>
+              <span>
+                {{ subItem.name }}
+              </span>
+            </div>
+          </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>
