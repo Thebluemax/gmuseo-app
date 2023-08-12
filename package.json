@@ -1,12 +1,13 @@
 {
   "name": "gmuseo",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Ionic Framework",
   "homepage": "https://ionicframework.com/",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "release:patch": "git add . && git commit -m 'release:' && git push && npm version patch && git push --follow-tags",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:coverage": "ng test --code-coverage",
