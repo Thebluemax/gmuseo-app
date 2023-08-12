@@ -3,9 +3,6 @@
 
 name: Deploy to Firebase Hosting on PR
 on:
-  create:
-    branches:
-      - release/*
   pull_request:
     branches:
       - release/*
