@@ -1,18 +1,18 @@
 {
   "name": "gmuseo",
   "version": "0.0.3",
-  "author": "Ionic Framework",
+  "author": "Maximiliano Fernández",
   "homepage": "https://ionicframework.com/",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
     "release:patch": "git add . && git commit -m 'release:' && git push && npm version patch && git push --follow-tags",
-    "watch": "ng build --watch --configuration development",
+    "watch": "ng build --watch --configuration production",
     "test": "ng test",
     "test:coverage": "ng test --code-coverage",
     "lint": "ng lint",
-    "build:prod": "ng build --prod",
+    "build:prod": "ng build --aot --configuration production",
     "test:prod": "ng test --browsers=ChromeHeadless --watch=false --code-coverage"
   },
   "private": true,
