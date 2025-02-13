@@ -1,16 +1,18 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { MainComponent } from './main/main.component';
+import { AuthGuard } from './auth.guard';
+import { DashboardPage } from './dashboard/dashboard.page';
 
 const routes: Routes = [
   {
     path: '',
-    redirectTo: 'main',
+    redirectTo: 'dashboard',
     pathMatch: 'full'
   },
   {
-    path: 'folder/:id',
-    loadChildren: () => import('./folder/folder.module').then( m => m.FolderPageModule)
+    path: 'login',
+    loadChildren: () => import('./login/login.module').then( m => m.LoginPageModule)
   },
   {
     path: 'main',
@@ -19,6 +21,10 @@ const routes: Routes = [
   {
     path: 'category',
     loadChildren: () => import('./category/category.module').then( m => m.CategoryPageModule)
+  },
+  {
+    path: 'graffiti',
+    loadChildren: () => import('./graffiti/graffiti.module').then( m => m.GraffitiModule)
   }
 ];
 

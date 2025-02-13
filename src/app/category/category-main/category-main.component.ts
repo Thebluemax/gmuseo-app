@@ -13,6 +13,7 @@ export class CategoryMainComponent  implements OnInit {
 
   ngOnInit() {
     this.category = new CategoryMock().getCategory(1);
+    this.category.graffitis = new CategoryMock().getCategoryGraffitis();
     
   }
 
