@@ -10,7 +10,7 @@ export class AppComponent {
   public appPages = [
     { title: 'Main', url: '/main', icon: 'home' },
     { title: 'Category', url: '/category', icon: 'paper-plane' },
-    { title: 'Favorites', url: '/folder/favorites', icon: 'heart' },
+    { title: 'Add', url: '/graffiti/new', icon: 'add' },
     { title: 'Archived', url: '/folder/archived', icon: 'archive' },
   ];
 
