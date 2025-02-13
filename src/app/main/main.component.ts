@@ -1,5 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Graffiti } from '../models/graffiti';
+import { Category } from '../models/category';
+import { CategoryMock } from '../mocks/category.mock';
+import { GraffitiMock } from '../mocks/graffti.mock';
 
 @Component({
   selector: 'app-main',
@@ -60,4 +63,11 @@ id: 15
     return this.monthlyList;
   }
 
+<<<<<<< HEAD
+=======
+  getCategoryList() {
+    return this.categoryList;
+  }
+
+>>>>>>> develop
 }
