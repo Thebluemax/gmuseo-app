@@ -15,8 +15,9 @@ const routes: Routes = [
     loadChildren: () => import('./login/login.module').then( m => m.LoginPageModule)
   },
   {
-    path: 'main',
-    component: MainComponent
+    path: 'dashboard',
+    loadChildren: () => import ('./dashboard/dashboard.module').then( m => m.DashboardPageModule),
+  
   },
   {
     path: 'category',

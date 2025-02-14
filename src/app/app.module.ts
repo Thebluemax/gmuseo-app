@@ -11,7 +11,7 @@ import { MainGraffitiComponent } from './components/main-graffiti/main-graffiti.
 import { MonthlyComponent } from './components/monthly/monthly.component';
 
 @NgModule({
-  declarations: [AppComponent, MainComponent,MainGraffitiComponent, MonthlyComponent],
+  declarations: [AppComponent],
   imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule],
   providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }],
   bootstrap: [AppComponent],
