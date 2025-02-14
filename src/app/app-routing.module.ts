@@ -8,31 +8,35 @@ const routes: Routes = [
   {
     path: '',
     redirectTo: 'dashboard',
-    pathMatch: 'full'
+    pathMatch: 'full',
   },
   {
     path: 'login',
-    loadChildren: () => import('./login/login.module').then( m => m.LoginPageModule)
+    loadChildren: () =>
+      import('./login/login.module').then((m) => m.LoginPageModule),
   },
   {
     path: 'dashboard',
-    loadChildren: () => import ('./dashboard/dashboard.module').then( m => m.DashboardPageModule),
-  
+    canActivate: [AuthGuard],
+    loadChildren: () =>
+      import('./dashboard/dashboard.module').then((m) => m.DashboardPageModule),
   },
   {
     path: 'category',
-    loadChildren: () => import('./category/category.module').then( m => m.CategoryPageModule)
+    loadChildren: () =>
+      import('./category/category.module').then((m) => m.CategoryPageModule),
   },
   {
     path: 'graffiti',
-    loadChildren: () => import('./graffiti/graffiti.module').then( m => m.GraffitiModule)
-  }
+    loadChildren: () =>
+      import('./graffiti/graffiti.module').then((m) => m.GraffitiModule),
+  },
 ];
 
 @NgModule({
   imports: [
-    RouterModule.forRoot(routes, { preloadingStrategy: PreloadAllModules })
+    RouterModule.forRoot(routes, { preloadingStrategy: PreloadAllModules }),
   ],
-  exports: [RouterModule]
+  exports: [RouterModule],
 })
 export class AppRoutingModule {}
