@@ -6,7 +6,7 @@ import { environment } from 'src/environments/environment';
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss'],
 })
-export class DashboardPage implements OnInit {
+export class DashboardPage {
   public appPages = [
     { title: 'Main', url: '/dashboard/main', icon: 'home' },
     { title: 'Outbox', url: '/dashboard/folder/outbox', icon: 'paper-plane' },
@@ -18,8 +18,5 @@ export class DashboardPage implements OnInit {
   public labels = ['Family', 'Friends', 'Notes', 'Work', 'Travel', 'Reminders'];
   public appName = environment.appName;
   constructor() { }
-
-  ngOnInit() {
-  }
 
 }

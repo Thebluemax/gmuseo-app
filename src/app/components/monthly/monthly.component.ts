@@ -5,11 +5,9 @@ import { Component, Input, OnInit } from '@angular/core';
   templateUrl: './monthly.component.html',
   styleUrls: ['./monthly.component.scss'],
 })
-export class MonthlyComponent  implements OnInit {
+export class MonthlyComponent {
 
   @Input() graffitiList: any[] = [];
   constructor() { }
-
-  ngOnInit() {}
 
 }
