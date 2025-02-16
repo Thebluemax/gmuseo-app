@@ -66,7 +66,7 @@ id: 15
 <<<<<<< HEAD
 =======
   getCategoryList() {
-    return this.categoryList;
+    return [];//this.categoryList;
   }
 
 >>>>>>> develop
