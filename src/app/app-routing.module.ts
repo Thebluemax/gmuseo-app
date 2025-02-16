@@ -3,6 +3,8 @@ import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { MainComponent } from './main/main.component';
 import { AuthGuard } from './auth.guard';
 import { DashboardPage } from './dashboard/dashboard.page';
+import { AuthGuard } from './auth.guard';
+import { DashboardPage } from './dashboard/dashboard.page';
 
 const routes: Routes = [
   {
