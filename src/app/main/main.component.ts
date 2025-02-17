@@ -9,7 +9,7 @@ import { GraffitiMock } from '../mocks/graffti.mock';
   templateUrl: './main.component.html',
   styleUrls: ['./main.component.scss'],
 })
-export class MainComponent  implements OnInit {
+export class MainComponent {
 
   private mainGraffiti: Graffiti = {
     name: 'Main Graffiti',
@@ -53,7 +53,6 @@ id: 15
 
   constructor() { }
 
-  ngOnInit() {}
 
   getMainGraffiti() {
     return this.mainGraffiti;
@@ -63,11 +62,8 @@ id: 15
     return this.monthlyList;
   }
 
-<<<<<<< HEAD
-=======
   getCategoryList() {
     return [];//this.categoryList;
   }
 
->>>>>>> develop
 }

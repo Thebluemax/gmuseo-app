@@ -3,8 +3,6 @@ import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { MainComponent } from './main/main.component';
 import { AuthGuard } from './auth.guard';
 import { DashboardPage } from './dashboard/dashboard.page';
-import { AuthGuard } from './auth.guard';
-import { DashboardPage } from './dashboard/dashboard.page';
 
 const routes: Routes = [
   {
@@ -25,14 +23,8 @@ const routes: Routes = [
   },
   {
     path: 'category',
-    loadChildren: () =>
-      import('./category/category.module').then((m) => m.CategoryPageModule),
-  },
-  {
-    path: 'graffiti',
-    loadChildren: () =>
-      import('./graffiti/graffiti.module').then((m) => m.GraffitiModule),
-  },
+    loadChildren: () => import('./category/category.module').then( m => m.CategoryPageModule)
+  }
 ];
 
 @NgModule({
