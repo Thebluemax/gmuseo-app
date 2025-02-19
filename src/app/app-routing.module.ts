@@ -8,12 +8,11 @@ const routes: Routes = [
   {
     path: '',
     redirectTo: 'dashboard',
-    pathMatch: 'full',
+    pathMatch: 'full'
   },
   {
     path: 'login',
-    loadChildren: () =>
-      import('./login/login.module').then((m) => m.LoginPageModule),
+    loadChildren: () => import('./login/login.module').then( m => m.LoginPageModule)
   },
   {
     path: 'dashboard',
@@ -24,6 +23,10 @@ const routes: Routes = [
   {
     path: 'category',
     loadChildren: () => import('./category/category.module').then( m => m.CategoryPageModule)
+  },
+  {
+    path: 'graffiti',
+    loadChildren: () => import('./graffiti/graffiti.module').then( m => m.GraffitiModule)
   }
 ];
 
