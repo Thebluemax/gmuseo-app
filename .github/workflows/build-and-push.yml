@@ -30,17 +30,22 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
       - name: get the version from package.json
         run: |
-          VERSION_TAG=$(grep -E '"version": "(.*)"' package.json | grep -E -o '[0-9].[0-9].[0-9]')
+          VERSION_NUM_TAG=$(grep -E '"version": "(.*)"' package.json | grep -E -o '[0-9].[0-9].[0-9]')
       - name: Push image
         run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$VERSION_TAG
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
 
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
 
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
 
-          [ "$VERSION" == "main" ] && VERSION=latest
-          echo IMAGE_ID=$IMAGE_ID
+          [ "$VERSION" == "main" ] && NAMED_VERSION=latest
+          [ "$VERSION" == "development" ] && VERSION=$(${VERSION_NUM_TAG}-dev)
+          echo IMAGE_ID=$IMAGE_ID:$VERSION_NUM_TAG
           echo VERSION=$VERSION
+      - name: Tag and push image
+        run: |
+          docker tag $IMAGE_NAME $IMAGE_ID:$VERSION_NUM_TAG
           docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION_NUM_TAG
           docker push $IMAGE_ID:$VERSION
