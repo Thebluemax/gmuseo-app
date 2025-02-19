@@ -7,10 +7,8 @@ on:
     branches:
       - main
       - release/*
-      - bugfix/*
-      - hotfix/*
       
-  workflow_dispatch:
+  workflow_dispatch: 
      
 env:
   IMAGE_NAME: gmuseo-app
@@ -23,7 +21,8 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
       - name: Build image from Dockerfile
         run: docker build . --file Dockerfile --tag $IMAGE_NAME --label "runnumber=${GITHUB_RUN_ID}"
       - name: Log in to registry

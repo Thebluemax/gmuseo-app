@@ -1,4 +1,4 @@
-FROM node:16 as node
+FROM node:20 as node
 WORKDIR /app
 COPY . .
 RUN npm ci
