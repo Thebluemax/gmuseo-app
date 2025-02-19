@@ -62,11 +62,8 @@ id: 15
     return this.monthlyList;
   }
 
-<<<<<<< HEAD
-=======
   getCategoryList() {
     return [];//this.categoryList;
   }
 
->>>>>>> develop
 }
