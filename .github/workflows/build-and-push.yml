@@ -35,7 +35,7 @@ jobs:
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
 
           [ "$VERSION" == "main" ] && NAMED_VERSION=latest
-          [ "$VERSION" == "develop" ] && VERSION=$(${VERSION_NUM_TAG}-dev)
+          [ "$VERSION" == "develop" ] && VERSION=${VERSION_NUM_TAG}-dev
           echo IMAGE_ID=$IMAGE_ID:$VERSION_NUM_TAG
           echo VERSION=$VERSION
       - name: Tag and push image
