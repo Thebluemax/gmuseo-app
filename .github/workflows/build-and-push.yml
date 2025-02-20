@@ -9,6 +9,8 @@ on:
     inputs:
       tags:
         description: 'Tags for build'
+env:
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   push:
@@ -27,7 +29,7 @@ jobs:
       - name: Push image
         run: |
           VERSION_NUM_TAG=$(grep -E '"version": "(.*)"' package.json | grep -E -o '[0-9].[0-9].[0-9]')
-          IMAGE_ID=ghcr.io/${{ github.repository }}
+          IMAGE_ID=ghcr.io/$IMAGE_NAME
           echo IMAGE_ID=$IMAGE_ID >> $GITHUB_ENV
           echo VERSION_NUM_TAG=$VERSION_NUM_TAG >> $GITHUB_ENV
 
