@@ -50,7 +50,9 @@ jobs:
       run: npm ci
     - name: install angular cli
       run: npm install -g @angular/cli@18
-    - run: npm run test -- --no-watch --no-progress --browsers=ChromeHeadlessCI  --code-coverage
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
     - run: npm run test:prod
+    - name: Update Coverage Badge
+      if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+      uses: we-cli/coverage-badge-action@main
+
 
