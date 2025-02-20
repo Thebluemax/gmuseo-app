@@ -30,6 +30,9 @@ jobs:
         run: |
           VERSION_NUM_TAG=$(grep -E '"version": "(.*)"' package.json | grep -E -o '[0-9].[0-9].[0-9]')
           IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
+          echo IMAGE_ID=$IMAGE_ID >> $GITHUB_ENV
+          echo VERSION_NUM_TAG=$VERSION_NUM_TAG >> $GITHUB_ENV
+
 
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
 
