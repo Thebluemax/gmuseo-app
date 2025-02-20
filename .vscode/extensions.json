@@ -1,5 +1,16 @@
 {
     "recommendations": [
-      "ionic.ionic"
+      "ionic.ionic",
+      "johnpapa.angular-essentials",
+      "angular.ng-template",
+      "cyrilletuzi.angular-schematics",
+      "johnpapa.angular2",
+      "alefragnani.bookmarks",
+      "dbaeumer.vscode-eslint",
+      "codezombiech.gitignore",
+      "balazs4.gitlab-pipeline-monitor",
+      "gitlab.gitlab-workflow",
+      "orta.vscode-jest",
+      "cmstead.js-codeformer"
     ]
 }

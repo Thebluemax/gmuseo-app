@@ -6,11 +6,9 @@ import { Graffiti } from 'src/app/models/graffiti';
   templateUrl: './main-graffiti.component.html',
   styleUrls: ['./main-graffiti.component.scss'],
 })
-export class MainGraffitiComponent  implements OnInit {
+export class MainGraffitiComponent {
 
   @Input() graffiti: Graffiti | null = null;
   constructor() { }
-
-  ngOnInit() {}
 
 }

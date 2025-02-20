@@ -5,7 +5,7 @@ import { Component, OnInit } from '@angular/core';
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
 })
-export class LoginPage implements OnInit {
+export class LoginPage {
 
   email: string;
   password: string;
@@ -13,10 +13,6 @@ export class LoginPage implements OnInit {
     this.email = '';
     this.password = '';
    }
-
-  ngOnInit() {
-  }
-
   login() {
     console.log(this.email);
   }

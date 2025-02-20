@@ -5,10 +5,8 @@ import { Component, OnInit } from '@angular/core';
   templateUrl: './graffiti-show.component.html',
   styleUrls: ['./graffiti-show.component.scss'],
 })
-export class GraffitiShowComponent  implements OnInit {
+export class GraffitiShowComponent {
 
   constructor() { }
-
-  ngOnInit() {}
 
 }

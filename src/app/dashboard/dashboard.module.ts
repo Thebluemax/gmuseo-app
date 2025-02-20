@@ -7,6 +7,10 @@ import { IonicModule } from '@ionic/angular';
 import { DashboardPageRoutingModule } from './dashboard-routing.module';
 
 import { DashboardPage } from './dashboard.page';
+import { MainComponent } from '../main/main.component';
+import { CategoryNavComponent } from '../components/category-nav/category-nav.component';
+import { MonthlyComponent } from '../components/monthly/monthly.component';
+import { MainGraffitiComponent } from '../components/main-graffiti/main-graffiti.component';
 
 @NgModule({
   imports: [
@@ -15,6 +19,12 @@ import { DashboardPage } from './dashboard.page';
     IonicModule,
     DashboardPageRoutingModule
   ],
-  declarations: [DashboardPage]
+  declarations: [
+    DashboardPage,
+    MainComponent,
+    CategoryNavComponent,
+    MainGraffitiComponent,
+    MonthlyComponent
+  ]
 })
 export class DashboardPageModule {}
