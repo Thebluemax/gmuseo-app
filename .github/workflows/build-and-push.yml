@@ -1,18 +1,17 @@
 # This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
 
-name: Image Push
+name: Build and Push Image to Registry from Commit {{ github.ref }}
 on:
   push:
     branches:
-      - develop
-    tags:
-      - v*
-  pull_request:
-
+      - main
+      - release/*
+      
+  workflow_dispatch: 
+     
 env:
   IMAGE_NAME: gmuseo-app
-
 
 jobs:
   push:
@@ -22,22 +21,30 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Build image
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Build image from Dockerfile
         run: docker build . --file Dockerfile --tag $IMAGE_NAME --label "runnumber=${GITHUB_RUN_ID}"
       - name: Log in to registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
+      - name: get the version from package.json
+        run: |
+          VERSION_NUM_TAG=$(grep -E '"version": "(.*)"' package.json | grep -E -o '[0-9].[0-9].[0-9]')
       - name: Push image
         run: |
           IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
 
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
 
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
 
-          [ "$VERSION" == "main" ] && VERSION=latest
-          echo IMAGE_ID=$IMAGE_ID
+          [ "$VERSION" == "main" ] && NAMED_VERSION=latest
+          [ "$VERSION" == "development" ] && VERSION=$(${VERSION_NUM_TAG}-dev)
+          echo IMAGE_ID=$IMAGE_ID:$VERSION_NUM_TAG
           echo VERSION=$VERSION
+      - name: Tag and push image
+        run: |
+          docker tag $IMAGE_NAME $IMAGE_ID:$VERSION_NUM_TAG
           docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION_NUM_TAG
           docker push $IMAGE_ID:$VERSION
