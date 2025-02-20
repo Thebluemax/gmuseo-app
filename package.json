@@ -49,6 +49,7 @@
     "@angular/language-service": "^18.2.13",
     "@capacitor/cli": "5.2.2",
     "@ionic/angular-toolkit": "12.1.1",
+    "@ngrx/eslint-plugin": "^16.3.0",
     "@types/jasmine": "~4.3.0",
     "@types/node": "^12.11.1",
     "eslint": "^8.57.1",
@@ -65,7 +66,7 @@
     "karma-jasmine-html-reporter": "~2.0.0",
     "ts-node": "^8.3.0",
     "typescript": "~5.4.0",
-    "@ngrx/eslint-plugin": "^16.3.0"
+    "typescript-eslint": "^8.24.1"
   },
   "description": "An Ionic project"
 }
