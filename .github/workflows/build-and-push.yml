@@ -3,13 +3,11 @@
 
 name: Build and Push Image to Registry from Commit {{ github.ref }}
 on:
-  push:
-    branches:
-      - main
-      - release/*
       
-  workflow_dispatch: 
-     
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: 'Tags for build'
 env:
   IMAGE_NAME: gmuseo-app
 
