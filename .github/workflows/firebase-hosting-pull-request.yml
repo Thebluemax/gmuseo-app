@@ -3,10 +3,10 @@
 
 name: Deploy to Firebase Hosting on PR
 on:
-  pull_request:
-    branches:
-      - release/*
-      - develop
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: 'Tags for deploy'
 jobs:
   build_and_preview:
     if: '${{ github.event.pull_request.head.repo.full_name == github.repository }}'
