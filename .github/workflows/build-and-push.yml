@@ -25,11 +25,9 @@ jobs:
         run: docker build . --file Dockerfile --tag $IMAGE_NAME --label "runnumber=${GITHUB_RUN_ID}"
       - name: Log in to registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
-      - name: get the version from package.json
-        run: |
-          VERSION_NUM_TAG=$(grep -E '"version": "(.*)"' package.json | grep -E -o '[0-9].[0-9].[0-9]')
       - name: Push image
         run: |
+          VERSION_NUM_TAG=$(grep -E '"version": "(.*)"' package.json | grep -E -o '[0-9].[0-9].[0-9]')
           IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
 
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
@@ -37,7 +35,7 @@ jobs:
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
 
           [ "$VERSION" == "main" ] && NAMED_VERSION=latest
-          [ "$VERSION" == "development" ] && VERSION=$(${VERSION_NUM_TAG}-dev)
+          [ "$VERSION" == "develop" ] && VERSION=$(${VERSION_NUM_TAG}-dev)
           echo IMAGE_ID=$IMAGE_ID:$VERSION_NUM_TAG
           echo VERSION=$VERSION
       - name: Tag and push image
