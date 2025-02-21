@@ -44,7 +44,7 @@ jobs:
           echo VERSION=$VERSION
       - name: Tag and push image
         run: |
-          echo $VERSION_NUM_TAG "--"
+          echo $VERSION_NUM_TAG "--" $VERSION
           docker tag $IMAGE_NAME $IMAGE_ID:$VERSION_NUM_TAG
           docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
           docker push $IMAGE_ID:$VERSION_NUM_TAG
