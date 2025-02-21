@@ -34,14 +34,15 @@ jobs:
           echo VERSION_NUM_TAG=$VERSION_NUM_TAG >> $GITHUB_ENV
 
 
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          VERSION_REF=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
 
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
 
           [ "$VERSION" == "main" ] && NAMED_VERSION=latest
-          [ "$VERSION" == "develop" ] && VERSION=${VERSION_NUM_TAG}-dev
+          [ "$VERSION" != "main" ] && VERSION=${VERSION_NUM_TAG}-${VERSION_REF}
+          echo VERSION=$VERSION >> $GITHUB_ENV
           echo IMAGE_ID=$IMAGE_ID:$VERSION_NUM_TAG
-          echo VERSION=$VERSION
+
       - name: Tag and push image
         run: |
           echo $VERSION_NUM_TAG "--" $VERSION
