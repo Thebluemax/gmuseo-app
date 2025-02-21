@@ -38,15 +38,15 @@ jobs:
 
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
 
-          [ "$VERSION" == "main" ] && NAMED_VERSION=latest
-          [ "$VERSION" != "main" ] && VERSION=${VERSION_NUM_TAG}-${VERSION_REF}
-          echo VERSION=$VERSION >> $GITHUB_ENV
-          echo IMAGE_ID=$IMAGE_ID:$VERSION_NUM_TAG
+          [ "$VERSION_REF" == "main" ] && NAME_VERSION=latest
+          [ "$VERSION_REF" != "main" ] && NAME_VERSION=${VERSION_NUM_TAG}-${VERSION_REF}
+
+          echo NAME_VERSION=$NAME_VERSION >> $GITHUB_ENV
 
       - name: Tag and push image
         run: |
-          echo $VERSION_NUM_TAG "--" $VERSION
+          echo $IMAGE_ID:$VERSION_NUM_TAG "--" $IMAGE_ID:$NAME_VERSION
           docker tag $IMAGE_NAME $IMAGE_ID:$VERSION_NUM_TAG
-          docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
+          docker tag $IMAGE_NAME $IMAGE_ID:$NAME_VERSION
           docker push $IMAGE_ID:$VERSION_NUM_TAG
-          docker push $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$NAME_VERSION
