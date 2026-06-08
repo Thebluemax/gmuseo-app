@@ -78,37 +78,33 @@ The application layer injects the interface only. Platform selection via Angular
 
 ## API
 
-Base URL: `http://localhost` (local dev). All endpoints under `/api/v1/`.
+Base URL: `http://localhost/api` (local dev). **Note:** OpenAPI docs reference `/api/v1/` but actual routes are at `/api/` — use `/api/` in all requests.
+Docs: `http://localhost/docs/api-docs.json`
 
-**Auth — Laravel Sanctum bearer token:**
-- `POST /api/v1/auth/login` — body `{email, password}` → `{token}`
-- `POST /api/v1/auth/logout` — revokes token (bearer required)
+**Auth — Laravel Sanctum bearer token (pure token, no CSRF):**
+- `POST /api/auth/login` — body `{email, password}` → `{token: string}`
+- `POST /api/auth/logout` — revokes token (bearer required)
 
-Protected endpoints require `Authorization: Bearer <token>` header.
+Protected endpoints require `Authorization: Bearer <token>` header. Token stored in `localStorage` key `gm_token`.
 
-**Categories** (`/api/v1/categories`):
-- `GET` — paginated (`page`, `rows`)
+**Categories** (`/api/categories`):
+- `GET` — returns simple array (no pagination wrapper), params: `page`, `rows`
 - `GET /{id}` — by UUID
-- `POST` / `PUT /{id}` / `DELETE /{id}` — auth required
-- Body fields: `name_en` (required), `name_es`, `name_cat`, `description_en` (required), `description_es`, `description_cat` — **multilingual: English, Spanish, Catalan**
-- IDs are **UUIDs** (current frontend model uses `number` — needs fixing)
+- Response fields: `id` (UUID), `name`, `description`
 
-**Graffitis** (`/api/v1/graffitis`):
-- `GET` — paginated (`page`, `rows`)
-- `GET /last` — last 4 graffitis
+**Graffitis** (`/api/graffitis`):
+- `GET` — paginated `{data, links, meta}`, params: `page`, `rows`
+- `GET /last` — array of last 4 graffitis (no pagination wrapper)
 - `GET /last-galleries` — last 6 gallery entries
 - `GET /{id}/galleries` — galleries for a graffiti
-- `POST /api/v1/graffiti/create` — auth + `create entry` permission; body requires `title`, `description`, `category` (UUID), `artist_id`, **`latitude`** (float), **`longitude`** (float)
+- `POST /api/graffiti/create` — auth required; body: `title`, `description`, `category` (UUID), `artist_id`, `latitude` (float), `longitude` (float)
 - `POST /{id}/pictures` — upload multiple files (`files[]`), auth required
 - `POST /graffitis/store/picture` — upload single picture; server generates `lg`, `md`, `sm`, `thumb` variants
 
-**Artists** (`/api/v1/artists`):
-- `GET` — paginated
+Response fields per graffiti: `id` (UUID), `title`, `description`, `type` (category UUID), `latitude` (string), `longitude` (string), `galleries` (array)
 
-**Key gaps between current frontend and API:**
-- `Graffiti` model missing: `latitude`, `longitude`, `artist_id`, `title` (uses `name`)
-- `Category` model IDs must be UUID strings, not numbers; fields are `name_en`/`name_es`/`name_cat` not `name`
-- `AuthGuard` stub must store/read Sanctum token from storage and send as bearer
+**Artists** (`/api/artists`):
+- `GET` — paginated
 
 ## Native capabilities (Capacitor plugins installed)
 
