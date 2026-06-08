@@ -1,11 +1,21 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+import {
+  IonSplitPane, IonMenu, IonContent, IonList, IonListHeader, IonNote,
+  IonMenuToggle, IonItem, IonLabel, IonIcon, IonRouterOutlet,
+} from '@ionic/angular/standalone';
 import { environment } from 'src/environments/environment';
 
 @Component({
-    selector: 'app-dashboard',
-    templateUrl: './dashboard.page.html',
-    styleUrls: ['./dashboard.page.scss'],
-    standalone: false
+  selector: 'app-dashboard',
+  templateUrl: './dashboard.page.html',
+  styleUrls: ['./dashboard.page.scss'],
+  standalone: true,
+  imports: [
+    IonSplitPane, IonMenu, IonContent, IonList, IonListHeader, IonNote,
+    IonMenuToggle, IonItem, IonLabel, IonIcon, IonRouterOutlet,
+    RouterLink, RouterLinkActive,
+  ],
 })
 export class DashboardPage {
   public appPages = [
@@ -18,6 +28,4 @@ export class DashboardPage {
   ];
   public labels = ['Family', 'Friends', 'Notes', 'Work', 'Travel', 'Reminders'];
   public appName = environment.appName;
-  constructor() { }
-
 }

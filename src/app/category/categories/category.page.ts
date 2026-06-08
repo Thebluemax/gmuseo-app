@@ -1,17 +1,17 @@
 import { Component, OnInit } from '@angular/core';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow, IonCol } from '@ionic/angular/standalone';
 import { CategoryMock } from 'src/app/mocks/category.mock';
 import { Category } from 'src/app/models/category';
 
 @Component({
-    selector: 'app-category',
-    templateUrl: './category.page.html',
-    styleUrls: ['./category.page.scss'],
-    standalone: false
+  selector: 'app-category',
+  templateUrl: './category.page.html',
+  styleUrls: ['./category.page.scss'],
+  standalone: true,
+  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow, IonCol],
 })
 export class CategoryPage implements OnInit {
-
   private categories: Category[] = [];
-  constructor() { }
 
   ngOnInit() {
     this.categories = new CategoryMock().getCategoryList();
@@ -27,5 +27,4 @@ export class CategoryPage implements OnInit {
       category.graffitis = new CategoryMock().getCategoryGraffitis();
     });
   }
-
 }
