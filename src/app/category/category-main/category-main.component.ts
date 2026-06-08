@@ -3,9 +3,10 @@ import { CategoryMock } from 'src/app/mocks/category.mock';
 import { Category } from 'src/app/models/category';
 
 @Component({
-  selector: 'app-category-main',
-  templateUrl: './category-main.component.html',
-  styleUrls: ['./category-main.component.scss'],
+    selector: 'app-category-main',
+    templateUrl: './category-main.component.html',
+    styleUrls: ['./category-main.component.scss'],
+    standalone: false
 })
 export class CategoryMainComponent  implements OnInit {
   category:Category | null = null;
