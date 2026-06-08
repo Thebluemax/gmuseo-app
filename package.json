@@ -36,8 +36,7 @@
     "ionicons": "^7.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
-    "update": "^0.7.4",
-    "zone.js": "~0.15.1"
+    "update": "^0.7.4"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^21.2.14",
