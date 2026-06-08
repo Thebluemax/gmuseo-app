@@ -25,7 +25,9 @@ G-Museo is a graffiti museum — a mobile-first app where users can browse a cur
 
 ## Stack
 
-Angular 18 + Ionic 8 + Capacitor 5 (web/mobile hybrid). NgRx 18 is installed but not yet wired up. Build output goes to `www/` (not `dist/`). Capacitor provides native camera and geolocation access on iOS/Android.
+Angular 21 + Ionic 8 + Capacitor 5 (web/mobile hybrid). Build output goes to `www/` (not `dist/`). Capacitor bridges to native iOS/Android; the same `www/` bundle also runs as a PWA in the browser.
+
+**Platform targets:** web (Firebase Hosting / PWA) + native (iOS + Android via Capacitor). Both must work. Feature detection via `Capacitor.isNativePlatform()` — never assume native-only.
 
 ## Architectural decisions
 
@@ -40,11 +42,17 @@ Each context follows:
 <context>/
   domain/          ← interfaces, value objects (no Angular deps)
   application/     ← use cases as @Injectable services, inject()
-  infrastructure/  ← HTTP repository implementations
+  infrastructure/  ← HTTP + platform implementations (web vs native)
   presentation/    ← standalone pages + components
 ```
 
 Shared UI components in `shared/ui/`, shared domain types in `shared/domain/`.
+
+**Platform abstraction rule:** any hardware capability (camera, geolocation) must be defined as an interface in `domain/` and implemented twice in `infrastructure/`:
+- `*.web.ts` — browser APIs (`navigator.geolocation`, `<input type="file">`, etc.)
+- `*.native.ts` — Capacitor plugins (`@capacitor/camera`, `@capacitor/geolocation`)
+
+The application layer injects the interface only. Platform selection via Angular DI token + `Capacitor.isNativePlatform()` in `app.config.ts` (or per-context providers). Never import Capacitor plugins directly in application or presentation layers.
 
 ## Architecture (current state — being migrated)
 
@@ -102,8 +110,21 @@ Protected endpoints require `Authorization: Bearer <token>` header.
 - `Category` model IDs must be UUID strings, not numbers; fields are `name_en`/`name_es`/`name_cat` not `name`
 - `AuthGuard` stub must store/read Sanctum token from storage and send as bearer
 
+## Native capabilities (Capacitor plugins installed)
+
+| Plugin | Web fallback |
+|---|---|
+| `@capacitor/camera` | `<input type="file" accept="image/*" capture>` |
+| `@capacitor/geolocation` | `navigator.geolocation.getCurrentPosition()` |
+| `@capacitor/haptics` | no-op |
+| `@capacitor/keyboard` | no-op |
+| `@capacitor/status-bar` | no-op |
+
+Camera and geolocation are **core domain features** (submission flow). Haptics/keyboard/status-bar are UI enhancements — safe to no-op on web.
+
 ## Deployment
 
-- **Firebase Hosting**: `firebase deploy` — serves `www/`, SPA rewrites all paths to `index.html`
+- **Web/PWA**: `firebase deploy` — serves `www/`, SPA rewrites all paths to `index.html`
+- **Native**: `npx cap sync && npx cap open ios|android` after `npm run build:prod`
 - **Docker**: multi-stage build, copies `www/` into nginx:alpine
 - **Environment**: `src/environments/environment.ts` (dev) / `environment.prod.ts` (prod), currently only `appName` differs
