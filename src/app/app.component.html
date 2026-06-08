@@ -4,15 +4,16 @@
   </ion-content>
   <ion-tabs>
     <ion-tab-bar slot="bottom">
-      <ion-tab-button
-        *ngFor="let p of appPages; let i = index"
-        tab="{{ p.url.substr(1) | lowercase}}"
-        routerDirection="root"
-        [routerLink]="[p.url]"
-      >
-        <ion-icon [name]="p.icon"></ion-icon>
-        {{ p.title }}
-      </ion-tab-button>
+      @for (p of appPages; track p; let i = $index) {
+        <ion-tab-button
+          tab="{{ p.url.substr(1) | lowercase}}"
+          routerDirection="root"
+          [routerLink]="[p.url]"
+          >
+          <ion-icon [name]="p.icon"></ion-icon>
+          {{ p.title }}
+        </ion-tab-button>
+      }
     </ion-tab-bar>
   </ion-tabs>
 </ion-app>

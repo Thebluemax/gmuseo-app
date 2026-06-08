@@ -1,29 +1,32 @@
 <div>
   <ion-grid>
-    <ion-row *ngFor="let categoryRow of listProcessed">
-      <ion-col
-        size="6"
-        size-md="6"
-        size-lg="6"
-        *ngFor="let category of categoryRow"
-      >
-        <ion-card>
-          <div class="category-canvas">
-            <div class="category-img">
-              <a [routerLink]="['/category/' + category.id]">
-                <img
-                  [src]="category?.image"
-                  [alt]="category?.description"
-                  [title]="category?.name"
-                />
-              </a>
-            </div>
-            <div class="category-header">
-              <h3>{{ category?.name | uppercase }}</h3>
-            </div>
-          </div>
-        </ion-card>
-      </ion-col>
-    </ion-row>
+    @for (categoryRow of listProcessed; track categoryRow) {
+      <ion-row>
+        @for (category of categoryRow; track category) {
+          <ion-col
+            size="6"
+            size-md="6"
+            size-lg="6"
+            >
+            <ion-card>
+              <div class="category-canvas">
+                <div class="category-img">
+                  <a [routerLink]="['/category/' + category.id]">
+                    <img
+                      [src]="category?.image"
+                      [alt]="category?.description"
+                      [title]="category?.name"
+                      />
+                  </a>
+                </div>
+                <div class="category-header">
+                  <h3>{{ category?.name | uppercase }}</h3>
+                </div>
+              </div>
+            </ion-card>
+          </ion-col>
+        }
+      </ion-row>
+    }
   </ion-grid>
 </div>

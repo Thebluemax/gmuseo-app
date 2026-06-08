@@ -11,30 +11,31 @@
         <div
           class="banner"
           [style.backgroundImage]="'url(' + category?.image + ')'"
-        >
+          >
           <span>{{ category?.name }}</span>
         </div>
       </ion-col>
-      <ion-col
-        [size]="4"
-        *ngFor="let graffiti of category?.graffitis"
-        class="ion-padding"
-      >
-        <div class="graffiti-thumb">
-          <div>
-            <a [routerLink]="['/graffiti/' + graffiti.id]">
-            <img
-              [src]="graffiti.image"
-              width="100%"
-              [style.height]="'max-content'"
-            />
-          </a>
+      @for (graffiti of category?.graffitis; track graffiti) {
+        <ion-col
+          [size]="4"
+          class="ion-padding"
+          >
+          <div class="graffiti-thumb">
+            <div>
+              <a [routerLink]="['/graffiti/' + graffiti.id]">
+                <img
+                  [src]="graffiti.image"
+                  width="100%"
+                  [style.height]="'max-content'"
+                  />
+              </a>
+            </div>
+            <span>
+              {{ graffiti.name }}
+            </span>
           </div>
-          <span>
-            {{ graffiti.name }}
-          </span>
-        </div>
-      </ion-col>
+        </ion-col>
+      }
     </ion-row>
   </ion-grid>
 </ion-content>
