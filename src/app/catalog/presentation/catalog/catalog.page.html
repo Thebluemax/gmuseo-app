@@ -1,0 +1,49 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>G-Museo</ion-title>
+    <ion-buttons slot="end">
+      @if (authService.isLoggedIn()) {
+        <ion-button [routerLink]="['/profile']">
+          <ion-icon slot="icon-only" name="person-circle-outline"></ion-icon>
+        </ion-button>
+      } @else {
+        <ion-button [routerLink]="['/auth/login']">
+          <ion-icon slot="icon-only" name="log-in-outline"></ion-icon>
+        </ion-button>
+      }
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  @if (loading()) {
+    <div class="loading-container">
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
+  }
+
+  @if (error()) {
+    <ion-text color="danger">
+      <p class="ion-padding">{{ error() }}</p>
+    </ion-text>
+  }
+
+  @if (!loading() && graffitis().length > 0) {
+    <ion-grid>
+      <ion-row>
+        @for (graffiti of graffitis(); track graffiti.id) {
+          <ion-col size="6">
+            <ion-card [routerLink]="['/catalog', graffiti.id]">
+              <ion-card-header>
+                <ion-card-title>{{ graffiti.title | slice:0:40 }}</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <p>{{ graffiti.description | slice:0:60 }}…</p>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+        }
+      </ion-row>
+    </ion-grid>
+  }
+</ion-content>

@@ -1,0 +1,17 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Perfil</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  @if (authService.user()) {
+    <ion-text>
+      <h2>{{ authService.user()?.name }}</h2>
+      <p>{{ authService.user()?.email }}</p>
+    </ion-text>
+  }
+  <ion-button expand="block" color="medium" (click)="logout()">
+    Cerrar sesión
+  </ion-button>
+</ion-content>

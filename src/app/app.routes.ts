@@ -1,27 +1,53 @@
 import { Routes } from '@angular/router';
-import { AuthGuard } from './auth.guard';
+import { TabsPage } from './shell/tabs.page';
+import { authGuard } from './auth/application/auth.guard';
 
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'dashboard',
-    pathMatch: 'full',
+    component: TabsPage,
+    children: [
+      {
+        path: 'catalog',
+        loadComponent: () =>
+          import('./catalog/presentation/catalog/catalog.page').then((m) => m.CatalogPage),
+      },
+      {
+        path: 'categories',
+        loadComponent: () =>
+          import('./catalog/presentation/categories/categories.page').then((m) => m.CategoriesPage),
+      },
+      {
+        path: 'submit',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./submission/presentation/submit/submit.page').then((m) => m.SubmitPage),
+      },
+      {
+        path: 'profile',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./auth/presentation/profile/profile.page').then((m) => m.ProfilePage),
+      },
+      {
+        path: '',
+        redirectTo: 'catalog',
+        pathMatch: 'full',
+      },
+    ],
   },
   {
-    path: 'login',
-    loadComponent: () => import('./login/login.page').then((m) => m.LoginPage),
+    path: 'auth',
+    children: [
+      {
+        path: 'login',
+        loadComponent: () =>
+          import('./auth/presentation/login/login.page').then((m) => m.LoginPage),
+      },
+    ],
   },
   {
-    path: 'dashboard',
-    canActivate: [AuthGuard],
-    loadChildren: () => import('./dashboard/dashboard.routes').then((m) => m.dashboardRoutes),
-  },
-  {
-    path: 'category',
-    loadChildren: () => import('./category/category.routes').then((m) => m.categoryRoutes),
-  },
-  {
-    path: 'graffiti',
-    loadChildren: () => import('./graffiti/graffiti.routes').then((m) => m.graffitiRoutes),
+    path: '**',
+    redirectTo: 'catalog',
   },
 ];
