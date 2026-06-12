@@ -17,6 +17,6 @@ export class ProfilePage {
 
   async logout() {
     await this.authService.logout();
-    this.router.navigate(['/catalog']);
+    this.router.navigate(['/tabs/catalog']);
   }
 }

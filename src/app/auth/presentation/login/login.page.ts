@@ -34,7 +34,7 @@ export class LoginPage {
     this.error.set(null);
     try {
       await this.authService.login({ email: this.email, password: this.password });
-      this.router.navigate(['/catalog']);
+      this.router.navigate(['/tabs/catalog']);
     } catch {
       this.error.set('Credenciales incorrectas. Inténtalo de nuevo.');
     } finally {

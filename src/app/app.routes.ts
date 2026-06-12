@@ -4,13 +4,13 @@ import { authGuard } from './auth/application/auth.guard';
 
 export const routes: Routes = [
   {
-    path: '',
+    path: 'tabs',
     component: TabsPage,
     children: [
       {
         path: 'catalog',
         loadComponent: () =>
-          import('./catalog/presentation/catalog/catalog.page').then((m) => m.CatalogPage),
+          import('./graffiti/presentation/graffiti-page/graffiti.page').then((m) => m.GraffitiPage),
       },
       {
         path: 'categories',
@@ -31,7 +31,7 @@ export const routes: Routes = [
       },
       {
         path: '',
-        redirectTo: 'catalog',
+        redirectTo: '/tabs/catalog',
         pathMatch: 'full',
       },
     ],
@@ -47,7 +47,12 @@ export const routes: Routes = [
     ],
   },
   {
+    path: '',
+    redirectTo: '/tabs/catalog',
+    pathMatch: 'full',
+  },
+  {
     path: '**',
-    redirectTo: 'catalog',
+    redirectTo: '/tabs/catalog',
   },
 ];
