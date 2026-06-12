@@ -1,0 +1,8 @@
+<ion-card [routerLink]="['/tabs/catalog', graffiti().id]">
+  <ion-card-header>
+    <ion-card-title>{{ graffiti().title | slice:0:40 }}</ion-card-title>
+  </ion-card-header>
+  <ion-card-content>
+    <p>{{ graffiti().description | slice:0:60 }}…</p>
+  </ion-card-content>
+</ion-card>

@@ -1,0 +1,19 @@
+<div class="reels" #stage>
+  @if (currentImage(); as img) {
+    <img class="reels__img" [src]="img.url" [alt]="current()?.title" />
+  } @else {
+    <div class="reels__img reels__img--empty"></div>
+  }
+
+  @if (images().length > 1) {
+    <div class="reels__dots">
+      @for (img of images(); track img.id; let i = $index) {
+        <span class="reels__dot" [class.reels__dot--active]="i === imageIndex()"></span>
+      }
+    </div>
+  }
+
+  <div class="reels__bar">
+    <span class="reels__brand">G-Museo</span>
+  </div>
+</div>

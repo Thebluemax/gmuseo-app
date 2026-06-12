@@ -1,0 +1,23 @@
+@if (loading()) {
+  <div class="loading-container">
+    <ion-spinner name="crescent" />
+  </div>
+}
+
+@if (error()) {
+  <ion-text color="danger">
+    <p class="ion-padding">{{ error() }}</p>
+  </ion-text>
+}
+
+@if (!loading() && graffitis().length > 0) {
+  <ion-grid>
+    <ion-row>
+      @for (graffiti of graffitis(); track graffiti.id) {
+        <ion-col size="6">
+          <gm-graffiti-card [graffiti]="graffiti" />
+        </ion-col>
+      }
+    </ion-row>
+  </ion-grid>
+}

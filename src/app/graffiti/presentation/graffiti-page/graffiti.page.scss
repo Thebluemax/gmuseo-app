@@ -1,0 +1,21 @@
+.reels-content {
+  --background: #000;
+}
+
+.reels-top {
+  position: absolute;
+  top: calc(8px + var(--ion-safe-area-top, 0px));
+  right: 8px;
+  z-index: 10;
+
+  ion-button {
+    --color: #fff;
+  }
+}
+
+.reels-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}

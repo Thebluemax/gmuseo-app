@@ -1,0 +1,25 @@
+<ion-content [fullscreen]="true" [scrollY]="false" class="reels-content">
+  <div class="reels-top">
+    @if (authService.isLoggedIn()) {
+      <ion-button fill="clear" [routerLink]="['/tabs/profile']">
+        <ion-icon slot="icon-only" name="person-circle-outline"></ion-icon>
+      </ion-button>
+    } @else {
+      <ion-button fill="clear" [routerLink]="['/auth/login']">
+        <ion-icon slot="icon-only" name="log-in-outline"></ion-icon>
+      </ion-button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="reels-center">
+      <ion-spinner name="crescent" />
+    </div>
+  } @else if (error()) {
+    <div class="reels-center">
+      <ion-text color="danger">{{ error() }}</ion-text>
+    </div>
+  } @else if (graffitis().length > 0) {
+    <gm-graffiti-reels [graffitis]="graffitis()" />
+  }
+</ion-content>
