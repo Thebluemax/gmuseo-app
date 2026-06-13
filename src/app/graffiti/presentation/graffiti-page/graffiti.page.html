@@ -1,11 +1,14 @@
 <ion-content [fullscreen]="true" [scrollY]="false" class="reels-content">
   <div class="reels-top">
+    <button type="button" class="reels-top__brand" (click)="onAppNameClick()">
+      {{ appName }}
+    </button>
     @if (authService.isLoggedIn()) {
       <ion-button fill="clear" [routerLink]="['/tabs/profile']">
         <ion-icon slot="icon-only" name="person-circle-outline"></ion-icon>
       </ion-button>
     } @else {
-      <ion-button fill="clear" [routerLink]="['/auth/login']">
+      <ion-button fill="clear" (click)="onAppNameClick()">
         <ion-icon slot="icon-only" name="log-in-outline"></ion-icon>
       </ion-button>
     }
@@ -15,11 +18,14 @@
     <div class="reels-center">
       <ion-spinner name="crescent" />
     </div>
-  } @else if (error()) {
-    <div class="reels-center">
-      <ion-text color="danger">{{ error() }}</ion-text>
-    </div>
   } @else if (graffitis().length > 0) {
     <gm-graffiti-reels [graffitis]="graffitis()" />
+  } @else {
+    <div class="reels-placeholder">
+      <img class="reels-placeholder__img" src="assets/placeholder.svg" alt="" />
+      <div class="reels-placeholder__message">
+        {{ error() ?? 'No hay graffitis disponibles.' }}
+      </div>
+    </div>
   }
 </ion-content>
