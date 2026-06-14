@@ -3,7 +3,7 @@
     <button type="button" class="reels-top__brand" (click)="onAppNameClick()">
       {{ appName }}
     </button>
-    @if (authService.isLoggedIn()) {
+    @if (authService.isAuthenticated()) {
       <ion-button fill="clear" [routerLink]="['/tabs/profile']">
         <ion-icon slot="icon-only" name="person-circle-outline"></ion-icon>
       </ion-button>

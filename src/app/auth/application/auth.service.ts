@@ -19,8 +19,6 @@ export class AuthService {
 
   readonly user = this._user.asReadonly();
   readonly isAuthenticated = computed(() => this._accessToken() !== null);
-  /** @deprecated transitional alias — migrate callers to `isAuthenticated`. */
-  readonly isLoggedIn = this.isAuthenticated;
 
   /** Synchronous read for the interceptor. */
   accessToken(): string | null {
