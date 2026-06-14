@@ -1,14 +1,18 @@
 import {
   AfterViewInit, Component, ElementRef, OnDestroy, computed, input, signal, viewChild,
 } from '@angular/core';
-import type { Graffiti, GraffitiGallery } from '../../../domain/models/graffiti.model';
+import type { Graffiti } from '../../../domain/models/graffiti.model';
 
-// TODO(mock): fallback images while backend galleries are empty. Remove once API returns galleries.
-function mockGalleries(seed: string): GraffitiGallery[] {
+interface ReelImage {
+  id: string;
+  url: string;
+}
+
+// TODO(mock): fallback images while a graffiti has no sighting photos.
+function mockImages(seed: string): ReelImage[] {
   return [0, 1, 2].map((i) => ({
     id: `${seed}-mock-${i}`,
     url: `https://picsum.photos/seed/${seed}-${i}/900/1600`,
-    size: 'lg',
   }));
 }
 
@@ -17,17 +21,20 @@ function mockGalleries(seed: string): GraffitiGallery[] {
   templateUrl: './graffiti-reels.html',
   styleUrls: ['./graffiti-reels.scss'],
 })
-export class GraffitiReels implements AfterViewInit, OnDestroy {
+export class GraffitiReelsComponent implements AfterViewInit, OnDestroy {
   readonly graffitis = input.required<Graffiti[]>();
 
   readonly index = signal(0);
   readonly imageIndex = signal(0);
 
   readonly current = computed(() => this.graffitis()[this.index()] ?? null);
-  readonly images = computed(() => {
+  readonly images = computed<ReelImage[]>(() => {
     const g = this.current();
     if (!g) return [];
-    return g.galleries.length > 0 ? g.galleries : mockGalleries(g.id);
+    const photos = g.sightings.flatMap((s) =>
+      s.photos.map((p) => ({ id: p.id, url: p.files.lg }))
+    );
+    return photos.length > 0 ? photos : mockImages(g.id);
   });
   readonly currentImage = computed(() => this.images()[this.imageIndex()] ?? null);
 

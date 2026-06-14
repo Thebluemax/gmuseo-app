@@ -1,33 +1,89 @@
-import { Graffiti, GraffitiGallery } from '../../domain/models/graffiti.model';
+import { environment } from 'src/environments/environment';
+import {
+  Graffiti, GraffitiPhoto, GraffitiSighting, PhotoFiles,
+} from '../../domain/models/graffiti.model';
 
-export interface GraffitiGalleryDto {
+export interface PhotoFilesDto {
+  lg: string;
+  md: string;
+  sm: string;
+  thumb: string;
+}
+
+export interface GraffitiPhotoDto {
   id: string;
-  url: string;
-  size: string;
+  files: PhotoFilesDto;
+  owner: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GraffitiSightingDto {
+  id: string;
+  spotted_by: string;
+  spotted_at: string;
+  state: string;
+  description: string | null;
+  photos: GraffitiPhotoDto[];
 }
 
 export interface GraffitiDto {
   id: string;
-  title: string;
-  description: string;
-  type: string;
-  latitude: string;
-  longitude: string;
-  galleries: GraffitiGalleryDto[];
+  category: string;
+  latitude: number;
+  longitude: number;
+  vote: number;
+  active: boolean;
+  cover: string;
+  sightings: GraffitiSightingDto[];
+}
+
+/** Prefix relative `/storage/...` paths with the media host. Leaves absolute URLs untouched. */
+function mediaUrl(path: string): string {
+  if (!path) return '';
+  if (/^https?:\/\//.test(path)) return path;
+  return `${environment.mediaUrl}${path.startsWith('/') ? '' : '/'}${path}`;
 }
 
 export function toGraffiti(dto: GraffitiDto): Graffiti {
   return {
     id: dto.id,
-    title: dto.title,
-    description: dto.description,
-    type: dto.type,
+    category: dto.category,
     latitude: dto.latitude,
     longitude: dto.longitude,
-    galleries: dto.galleries.map(toGallery),
+    vote: dto.vote,
+    active: dto.active,
+    cover: mediaUrl(dto.cover),
+    sightings: (dto.sightings ?? []).map(toSighting),
   };
 }
 
-function toGallery(dto: GraffitiGalleryDto): GraffitiGallery {
-  return { id: dto.id, url: dto.url, size: dto.size };
+function toSighting(dto: GraffitiSightingDto): GraffitiSighting {
+  return {
+    id: dto.id,
+    spottedBy: dto.spotted_by,
+    spottedAt: dto.spotted_at,
+    state: dto.state,
+    description: dto.description,
+    photos: (dto.photos ?? []).map(toPhoto),
+  };
+}
+
+function toPhoto(dto: GraffitiPhotoDto): GraffitiPhoto {
+  return {
+    id: dto.id,
+    files: toFiles(dto.files),
+    owner: dto.owner,
+    createdAt: dto.created_at,
+    updatedAt: dto.updated_at,
+  };
+}
+
+function toFiles(dto: PhotoFilesDto): PhotoFiles {
+  return {
+    lg: mediaUrl(dto.lg),
+    md: mediaUrl(dto.md),
+    sm: mediaUrl(dto.sm),
+    thumb: mediaUrl(dto.thumb),
+  };
 }

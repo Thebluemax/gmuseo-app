@@ -6,6 +6,7 @@ export const environment = {
   production: false,
   appName: "Gmuseo",
   apiUrl: "http://localhost/api",
+  mediaUrl: "http://localhost",
 };
 
 /*

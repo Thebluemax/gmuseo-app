@@ -4,10 +4,12 @@ import {
   IonButton, IonIcon, IonContent, IonSpinner,
   ModalController,
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { personCircleOutline, logInOutline } from 'ionicons/icons';
 import { LoadGraffitiListUseCase } from '../../application/usecases/load-graffiti-list.usecase';
 import { AuthService } from '../../../auth/application/auth.service';
 import { LoginModalComponent } from '../../../auth/presentation/login-modal/login-modal.component';
-import { GraffitiReels } from '../components/graffiti-reels/graffiti-reels';
+import { GraffitiReelsComponent } from '../components/graffiti-reels/graffiti-reels';
 import type { Graffiti } from '../../domain/models/graffiti.model';
 import { environment } from 'src/environments/environment';
 
@@ -18,7 +20,7 @@ import { environment } from 'src/environments/environment';
   imports: [
     IonButton, IonIcon, IonContent, IonSpinner,
     RouterLink,
-    GraffitiReels,
+    GraffitiReelsComponent,
   ],
 })
 export class GraffitiPage implements OnInit {
@@ -27,6 +29,11 @@ export class GraffitiPage implements OnInit {
   readonly authService = inject(AuthService);
 
   readonly appName = environment.appName;
+
+  constructor() {
+    addIcons({ personCircleOutline, logInOutline });
+  }
+
   readonly graffitis = signal<Graffiti[]>([]);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
@@ -36,7 +43,7 @@ export class GraffitiPage implements OnInit {
   }
 
   async onAppNameClick(): Promise<void> {
-    if (this.authService.isLoggedIn()) {
+    if (this.authService.isAuthenticated()) {
       return;
     }
     const modal = await this.modalCtrl.create({

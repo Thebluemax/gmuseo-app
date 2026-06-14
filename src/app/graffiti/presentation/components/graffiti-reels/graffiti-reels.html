@@ -1,6 +1,6 @@
 <div class="reels" #stage>
   @if (currentImage(); as img) {
-    <img class="reels__img" [src]="img.url" [alt]="current()?.title" />
+    <img class="reels__img" [src]="img.url" alt="Graffiti" />
   } @else {
     <div class="reels__img reels__img--empty"></div>
   }
@@ -13,7 +13,4 @@
     </div>
   }
 
-  <div class="reels__bar">
-    <span class="reels__brand">G-Museo</span>
-  </div>
 </div>
