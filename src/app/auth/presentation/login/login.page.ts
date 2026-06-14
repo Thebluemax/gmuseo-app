@@ -1,12 +1,13 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent,
   IonCard, IonCardHeader, IonCardTitle, IonCardContent,
   IonItem, IonInput, IonButton, IonText, IonSpinner,
 } from '@ionic/angular/standalone';
 import { AuthService } from '../../application/auth.service';
+import { firstError } from '../validation-errors';
 
 @Component({
   selector: 'gm-login',
@@ -17,7 +18,7 @@ import { AuthService } from '../../application/auth.service';
     IonHeader, IonToolbar, IonTitle, IonContent,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent,
     IonItem, IonInput, IonButton, IonText, IonSpinner,
-    FormsModule,
+    FormsModule, RouterLink,
   ],
 })
 export class LoginPage {
@@ -35,8 +36,10 @@ export class LoginPage {
     try {
       await this.authService.login({ email: this.email, password: this.password });
       this.router.navigate(['/tabs/catalog']);
-    } catch {
-      this.error.set('Credenciales incorrectas. Inténtalo de nuevo.');
+    } catch (err) {
+      // 422 carries the server's "credentials are incorrect" message; fall back
+      // to a generic message for transport/other errors.
+      this.error.set(firstError(err) ?? 'Credenciales incorrectas. Inténtalo de nuevo.');
     } finally {
       this.loading.set(false);
     }

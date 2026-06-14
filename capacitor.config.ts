@@ -6,6 +6,14 @@ const config: CapacitorConfig = {
   webDir: 'www',
   server: {
     androidScheme: 'https'
+  },
+  plugins: {
+    // Route HttpClient requests through the native HTTP layer (outside the
+    // WebView). XSS in the WebView cannot intercept these requests, and CORS
+    // is bypassed so the API's `Accept: application/json` requirement holds.
+    CapacitorHttp: {
+      enabled: true
+    }
   }
 };
 
