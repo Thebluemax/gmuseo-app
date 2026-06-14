@@ -2,9 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import {
-  IonHeader, IonToolbar, IonTitle, IonContent,
-  IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-  IonItem, IonInput, IonButton, IonText, IonSpinner,
+  IonContent, IonInput, IonButton, IonText, IonSpinner,
 } from '@ionic/angular/standalone';
 import { AuthService } from '../../application/auth.service';
 import { firstError } from '../validation-errors';
@@ -15,9 +13,7 @@ import { firstError } from '../validation-errors';
   styleUrls: ['./login.page.scss'],
   standalone: true,
   imports: [
-    IonHeader, IonToolbar, IonTitle, IonContent,
-    IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    IonItem, IonInput, IonButton, IonText, IonSpinner,
+    IonContent, IonInput, IonButton, IonText, IonSpinner,
     FormsModule, RouterLink,
   ],
 })

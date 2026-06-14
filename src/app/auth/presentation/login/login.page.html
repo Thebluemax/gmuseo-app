@@ -1,56 +1,39 @@
-<ion-header>
-  <ion-toolbar color="primary">
-    <ion-title>Iniciar sesión</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content class="login">
+  <div class="login__box">
+    @if (error()) {
+      <ion-text color="danger"><p class="login__error">{{ error() }}</p></ion-text>
+    }
 
-<ion-content class="ion-padding">
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>G-Museo</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      @if (error()) {
-        <ion-text color="danger">
-          <p>{{ error() }}</p>
-        </ion-text>
+    <ion-input
+      class="login__input"
+      type="email"
+      fill="outline"
+      placeholder="Email"
+      [(ngModel)]="email"
+      autocomplete="email">
+    </ion-input>
+
+    <ion-input
+      class="login__input"
+      type="password"
+      fill="outline"
+      placeholder="Contraseña"
+      [(ngModel)]="password"
+      autocomplete="current-password">
+    </ion-input>
+
+    <ion-button
+      class="login__submit"
+      expand="block"
+      [disabled]="loading()"
+      (click)="login()">
+      @if (loading()) {
+        <ion-spinner name="crescent"></ion-spinner>
+      } @else {
+        Entrar
       }
+    </ion-button>
 
-      <ion-item>
-        <ion-input
-          type="email"
-          label="Email"
-          labelPlacement="floating"
-          [(ngModel)]="email"
-          autocomplete="email">
-        </ion-input>
-      </ion-item>
-
-      <ion-item>
-        <ion-input
-          type="password"
-          label="Contraseña"
-          labelPlacement="floating"
-          [(ngModel)]="password"
-          autocomplete="current-password">
-        </ion-input>
-      </ion-item>
-
-      <ion-button
-        expand="block"
-        class="ion-margin-top"
-        [disabled]="loading()"
-        (click)="login()">
-        @if (loading()) {
-          <ion-spinner name="crescent"></ion-spinner>
-        } @else {
-          Entrar
-        }
-      </ion-button>
-
-      <ion-button expand="block" fill="clear" routerLink="/auth/register">
-        Crear cuenta
-      </ion-button>
-    </ion-card-content>
-  </ion-card>
+    <a class="login__link" routerLink="/auth/register">Crear cuenta</a>
+  </div>
 </ion-content>

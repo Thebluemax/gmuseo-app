@@ -1,3 +1,30 @@
+.submit__header ion-toolbar {
+  --background: transparent;
+  --border-width: 0;
+  --border-color: transparent;
+}
+
+.submit {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 8px 20px 28px;
+
+  ion-item {
+    --background: transparent;
+    --padding-start: 0;
+    --inner-padding-end: 0;
+  }
+
+  &__error {
+    margin: 0;
+    text-align: center;
+    font-size: 0.85rem;
+  }
+}
+
 .thumbs {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

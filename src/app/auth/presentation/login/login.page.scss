@@ -1,7 +1,35 @@
-ion-card {
-  margin-top: 2rem;
-}
+.login {
+  --background: var(--ion-background-color, #fff);
 
-ion-item {
-  margin-bottom: 0.5rem;
+  &__box {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-width: 340px;
+    margin: 0 auto;
+    padding: 0 24px;
+    min-height: 100%;
+    justify-content: center;
+  }
+
+  &__input {
+    --border-radius: 10px;
+  }
+
+  &__submit {
+    margin-top: 6px;
+  }
+
+  &__error {
+    margin: 0;
+    text-align: center;
+    font-size: 0.85rem;
+  }
+
+  &__link {
+    text-align: center;
+    color: var(--ion-color-medium, #888);
+    font-size: 0.9rem;
+    text-decoration: none;
+  }
 }
