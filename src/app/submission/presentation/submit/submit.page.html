@@ -1,15 +1,15 @@
-<ion-header>
-  <ion-toolbar color="primary">
+<ion-header class="submit__header">
+  <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs/catalog"></ion-back-button>
+      <ion-back-button defaultHref="/tabs/catalog" text=""></ion-back-button>
     </ion-buttons>
-    <ion-title>Subir graffiti</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
+<ion-content>
+  <div class="submit">
   @if (error()) {
-    <ion-text color="danger"><p>{{ error() }}</p></ion-text>
+    <ion-text color="danger"><p class="submit__error">{{ error() }}</p></ion-text>
   }
 
   <!-- Photos -->
@@ -63,6 +63,38 @@
     <ion-note color="danger" class="hint">{{ categoryService.error() }}</ion-note>
   }
 
+  <!-- Artist -->
+  <ion-item lines="full">
+    <ion-select
+      label="Artista"
+      labelPlacement="floating"
+      [(ngModel)]="artistId"
+      placeholder="Elegí un artista">
+      @for (artist of artists(); track artist.id) {
+        <ion-select-option [value]="artist.id">{{ artist.name }}</ion-select-option>
+      }
+    </ion-select>
+  </ion-item>
+
+  <!-- State -->
+  <ion-item lines="full">
+    <ion-select label="Estado" labelPlacement="floating" [(ngModel)]="state">
+      @for (s of states; track s.value) {
+        <ion-select-option [value]="s.value">{{ s.label }}</ion-select-option>
+      }
+    </ion-select>
+  </ion-item>
+
+  <!-- Description -->
+  <ion-item lines="full">
+    <ion-textarea
+      label="Descripción (opcional)"
+      labelPlacement="floating"
+      [autoGrow]="true"
+      [(ngModel)]="description">
+    </ion-textarea>
+  </ion-item>
+
   <ion-button
     expand="block"
     class="ion-margin-top"
@@ -74,4 +106,5 @@
       Publicar
     }
   </ion-button>
+  </div>
 </ion-content>
