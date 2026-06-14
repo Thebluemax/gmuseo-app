@@ -1,11 +1,11 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
-  IonButton, IonIcon, IonContent, IonSpinner,
+  IonButton, IonIcon, IonContent, IonSpinner, IonFab, IonFabButton,
   ModalController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { personCircleOutline, logInOutline } from 'ionicons/icons';
+import { personCircleOutline, logInOutline, addOutline } from 'ionicons/icons';
 import { LoadGraffitiListUseCase } from '../../application/usecases/load-graffiti-list.usecase';
 import { AuthService } from '../../../auth/application/auth.service';
 import { LoginModalComponent } from '../../../auth/presentation/login-modal/login-modal.component';
@@ -18,7 +18,7 @@ import { environment } from 'src/environments/environment';
   templateUrl: './graffiti.page.html',
   styleUrls: ['./graffiti.page.scss'],
   imports: [
-    IonButton, IonIcon, IonContent, IonSpinner,
+    IonButton, IonIcon, IonContent, IonSpinner, IonFab, IonFabButton,
     RouterLink,
     GraffitiReelsComponent,
   ],
@@ -31,7 +31,7 @@ export class GraffitiPage implements OnInit {
   readonly appName = environment.appName;
 
   constructor() {
-    addIcons({ personCircleOutline, logInOutline });
+    addIcons({ personCircleOutline, logInOutline, addOutline });
   }
 
   readonly graffitis = signal<Graffiti[]>([]);

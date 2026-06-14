@@ -28,4 +28,12 @@
       </div>
     </div>
   }
+
+  @if (authService.isAuthenticated()) {
+    <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+      <ion-fab-button [routerLink]="['/tabs/submit']" aria-label="Agregar graffiti">
+        <ion-icon name="add-outline"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
+  }
 </ion-content>

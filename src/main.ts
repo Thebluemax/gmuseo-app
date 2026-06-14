@@ -18,6 +18,14 @@ import { SecureTokenStorage } from './app/auth/domain/token-storage';
 import { SecureTokenStorageNative } from './app/auth/infrastructure/secure-token.storage.native';
 import { SecureTokenStorageWeb } from './app/auth/infrastructure/secure-token.storage.web';
 import { authInterceptor } from './app/auth/infrastructure/auth.interceptor';
+import { SubmissionRepository } from './app/submission/domain/submission.repository';
+import { HttpSubmissionRepository } from './app/submission/infrastructure/http-submission.repository';
+import { CameraPort } from './app/submission/domain/ports/camera.port';
+import { CameraNative } from './app/submission/infrastructure/camera.native';
+import { CameraWeb } from './app/submission/infrastructure/camera.web';
+import { GeolocationPort } from './app/submission/domain/ports/geolocation.port';
+import { GeolocationNative } from './app/submission/infrastructure/geolocation.native';
+import { GeolocationWeb } from './app/submission/infrastructure/geolocation.web';
 import { environment } from './environments/environment';
 
 bootstrapApplication(AppComponent, {
@@ -31,6 +39,13 @@ bootstrapApplication(AppComponent, {
     { provide: GraffitiRepository, useClass: HttpGraffitiRepository },
     { provide: CategoryRepository, useClass: HttpCategoryRepository },
     { provide: AuthRepository, useClass: SanctumAuthRepository },
+    { provide: SubmissionRepository, useClass: HttpSubmissionRepository },
+    // Native camera/GPS on device, web fallbacks in the browser.
+    { provide: CameraPort, useClass: Capacitor.isNativePlatform() ? CameraNative : CameraWeb },
+    {
+      provide: GeolocationPort,
+      useClass: Capacitor.isNativePlatform() ? GeolocationNative : GeolocationWeb,
+    },
     // Keychain/Keystore on device, in-memory in the browser.
     {
       provide: SecureTokenStorage,
