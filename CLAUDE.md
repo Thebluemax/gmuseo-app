@@ -78,32 +78,32 @@ The application layer injects the interface only. Platform selection via Angular
 
 ## API
 
-Base URL: `http://localhost/api` (local dev). **Note:** OpenAPI docs reference `/api/v1/` but actual routes are at `/api/` — use `/api/` in all requests.
+Base URL: `http://localhost/api` (local dev). Routes are versioned under `/api/v1/` — `environment.apiUrl` is `http://localhost/api`, repositories append `/v1/...` per endpoint.
 Docs: `http://localhost/docs/api-docs.json`
 
 **Auth — Laravel Sanctum bearer token (pure token, no CSRF):**
-- `POST /api/auth/login` — body `{email, password}` → `{token: string}`
-- `POST /api/auth/logout` — revokes token (bearer required)
+- `POST /api/v1/auth/login` — body `{email, password}` → `{access_token, token_type: "Bearer", token}` (`access_token` and `token` hold the same value)
+- `POST /api/v1/auth/logout` — revokes token (bearer required)
 
-Protected endpoints require `Authorization: Bearer <token>` header. Token stored in `localStorage` key `gm_token`.
+Protected endpoints require `Authorization: Bearer <token>` header. Token stored in `localStorage` key `gm_token` via `TokenStorage` service (`auth/infrastructure/token.storage.ts`).
 
-**Categories** (`/api/categories`):
+**Categories** (`/api/v1/categories`):
 - `GET` — returns simple array (no pagination wrapper), params: `page`, `rows`
 - `GET /{id}` — by UUID
 - Response fields: `id` (UUID), `name`, `description`
 
-**Graffitis** (`/api/graffitis`):
+**Graffitis** (`/api/v1/graffitis`):
 - `GET` — paginated `{data, links, meta}`, params: `page`, `rows`
 - `GET /last` — array of last 4 graffitis (no pagination wrapper)
 - `GET /last-galleries` — last 6 gallery entries
 - `GET /{id}/galleries` — galleries for a graffiti
-- `POST /api/graffiti/create` — auth required; body: `title`, `description`, `category` (UUID), `artist_id`, `latitude` (float), `longitude` (float)
+- `POST /api/v1/graffiti/create` — auth required; body: `title`, `description`, `category` (UUID), `artist_id`, `latitude` (float), `longitude` (float)
 - `POST /{id}/pictures` — upload multiple files (`files[]`), auth required
 - `POST /graffitis/store/picture` — upload single picture; server generates `lg`, `md`, `sm`, `thumb` variants
 
 Response fields per graffiti: `id` (UUID), `title`, `description`, `type` (category UUID), `latitude` (string), `longitude` (string), `galleries` (array)
 
-**Artists** (`/api/artists`):
+**Artists** (`/api/v1/artists`):
 - `GET` — paginated
 
 ## Native capabilities (Capacitor plugins installed)
