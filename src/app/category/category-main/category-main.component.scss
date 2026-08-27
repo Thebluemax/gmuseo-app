@@ -1,0 +1,38 @@
+.state {
+    padding: 1rem;
+    text-align: center;
+}
+
+.banner {
+    align-items: flex-end;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    display: flex;
+    height: 140px;
+    justify-content: center;
+    width: 100%;
+
+    span {
+        color: white;
+        font-size: 1.5rem;
+        font-weight: bold;
+        padding-bottom: 0.5rem;
+        text-shadow: 2px 2px 2px black;
+    }
+}
+
+.description {
+    color: var(--ion-color-medium);
+    font-size: 0.9rem;
+}
+
+.graffiti-thumb {
+    display: block;
+
+    img {
+        height: auto;
+        object-fit: cover;
+        width: 100%;
+    }
+}

@@ -52,59 +52,119 @@ Shared UI components in `shared/ui/`, shared domain types in `shared/domain/`.
 - `*.web.ts` — browser APIs (`navigator.geolocation`, `<input type="file">`, etc.)
 - `*.native.ts` — Capacitor plugins (`@capacitor/camera`, `@capacitor/geolocation`)
 
-The application layer injects the interface only. Platform selection via Angular DI token + `Capacitor.isNativePlatform()` in `app.config.ts` (or per-context providers). Never import Capacitor plugins directly in application or presentation layers.
+The application layer injects the interface only. Platform selection via Angular DI token + `Capacitor.isNativePlatform()` in the `bootstrapApplication` providers in `src/main.ts`. Never import Capacitor plugins directly in application or presentation layers.
 
 ## Architecture (current state — being migrated)
 
-**Feature modules (lazy-loaded):**
-- `login/` — unauthenticated entry point
-- `dashboard/` — shell with sidebar nav; children: `main/` (home view) and `folder/:id`
-- `category/` — list (`CategoryPage`) and detail (`CategoryMainComponent`)
-- `graffiti/` — list (`GraffitiMainComponent`), show (`GraffitiShowComponent`), create (`GraffitiNewComponent`)
+**Routed application** (`src/app/app.routes.ts`), all routes lazy-load a standalone component:
+- `tabs/` — `TabsPage` shell (`shell/tabs.page.ts`)
+  - `catalog` — `GraffitiPage`, the reels home screen
+  - `categories` — `CategoriesPage` (`catalog/presentation/categories`), plain category list
+  - `category` / `category/:category` — `CategoryPage` grid and `CategoryMainComponent` detail
+  - `submit` — `SubmitPage`, behind `authGuard`
+  - `profile` — `ProfilePage`, behind `authGuard`
+- `auth/login`, `auth/register`
+- `''` and `**` redirect to `/tabs/catalog`
 
-**Routing:**
-- Root redirects `''` → `dashboard`
-- `dashboard` is behind `AuthGuard`, which currently **always redirects to `/login`** (`if (true)` stub — not functional auth)
-- All top-level routes lazy-load their module
+**Not routed (pre-DDD leftovers):** `dashboard/`, `folder/`, `login/`. They still
+compile and have specs, but nothing reaches them. Superseded by the tab shell and
+`auth/presentation/`. `src/app/components/` and `src/app/main/` were removed for
+the same reason.
 
-**Shared components** (`src/app/components/`) use the `gm-` selector prefix (not `app-`):
-- `gm-main-graffiti` — hero graffiti display, takes `@Input() graffiti: Graffiti`
-- `gm-monthly-graffitis` — grid list, takes `@Input() graffitiList`
-- `gm-category-nav` — two-column category grid, takes `@Input() categories: Category[]`
+**Models:** each bounded context owns its own types under `<context>/domain/`.
+There is no global `src/app/models/` — it was deleted because a second
+definition of `Graffiti`/`Category` drifted away from the API.
+- `graffiti/domain/models/graffiti.model.ts` — `Graffiti` (`id` UUID, `category`,
+  `latitude`, `longitude`, `vote`, `active`, `cover`, `sightings`), plus
+  `GraffitiSighting` and `GraffitiPhoto`. **A graffiti has no title, name or
+  slug** — free text lives on the sighting.
+- `catalog/domain/category.model.ts` — `Category` (`id` UUID, `name`,
+  `description`). No image field: the API carries none.
 
-**Models** (`src/app/models/`): `Graffiti` (`id, name, image, description`) and `Category` (`id, name, description, image, graffitis?`).
+**Data layer:** repositories per context, abstract class in `domain/`, HTTP
+implementation in `infrastructure/`, bound by DI in `src/main.ts`
+(`GraffitiRepository`, `CategoryRepository`, `AuthRepository`,
+`SubmissionRepository`). Pages consume application services/use cases
+(`CategoryService`, `GraffitiService`, `LoadGraffitiListUseCase`), never
+`HttpClient` directly. `src/app/mocks/` is test fixtures only — typed against
+the domain models, never imported by production code.
 
-**Data layer:** No services yet — all data is hardcoded in `src/app/mocks/` (`CategoryMock`, `GraffitiMock`) and inline in `MainComponent`. Mock URLs point to `http://localhost:9444` (local backend).
+**Category covers:** the API has no category image, so `CategoryService`
+resolves one per category from `GET /v1/graffitis?category=<uuid>` and falls
+back to `assets/category-cover-fallback.svg`. Covers load out of band: the grid
+renders on the category list alone.
 
 ## API
 
-Base URL: `http://localhost/api` (local dev). Routes are versioned under `/api/v1/` — `environment.apiUrl` is `http://localhost/api`, repositories append `/v1/...` per endpoint.
+Base URL: `http://localhost/api` (local dev, through the nginx front). Routes are
+versioned under `/api/v1/` — `environment.apiUrl` is `/api` in dev (the
+`proxy.conf.json` ng-serve proxy forwards it, avoiding CORS) and repositories
+append `/v1/...` per endpoint. `environment.mediaUrl` roots photo URLs on the
+media host, because the API still returns absolute URLs to a legacy bucket.
 Docs: `http://localhost/docs/api-docs.json`
 
-**Auth — Laravel Sanctum bearer token (pure token, no CSRF):**
-- `POST /api/v1/auth/login` — body `{email, password}` → `{access_token, token_type: "Bearer", token}` (`access_token` and `token` hold the same value)
-- `POST /api/v1/auth/logout` — revokes token (bearer required)
+**Auth — Laravel Sanctum, access + refresh token pair:**
+- `POST /api/v1/auth/register` — 201, no tokens
+- `POST /api/v1/auth/login` — body `{email, password}`, response wrapped in `data`
+- `POST /api/v1/auth/refresh` — authorized with the **refresh** token, ability
+  `refresh`; using it elsewhere returns 403
+- `POST /api/v1/auth/logout` — revokes the token (bearer required)
+- `GET /api/v1/auth/userinfo` — current user
 
-Protected endpoints require `Authorization: Bearer <token>` header. Token stored in `localStorage` key `gm_token` via `TokenStorage` service (`auth/infrastructure/token.storage.ts`).
+Protected endpoints require `Authorization: Bearer <access token>`, attached by
+`authInterceptor`, which also forces `Accept: application/json` (without it the
+API 302-redirects instead of returning JSON). Tokens live in `SecureTokenStorage`:
+Keychain/Keystore on device, **in-memory on web** — never `localStorage`, which
+is XSS-readable.
 
 **Categories** (`/api/v1/categories`):
-- `GET` — returns simple array (no pagination wrapper), params: `page`, `rows`
+- `GET` — bare array, **no** `{data, meta}` wrapper; param `rows` (default 50).
+  There is no `page` param on this endpoint.
 - `GET /{id}` — by UUID
 - Response fields: `id` (UUID), `name`, `description`
 
 **Graffitis** (`/api/v1/graffitis`):
-- `GET` — paginated `{data, links, meta}`, params: `page`, `rows`
-- `GET /last` — array of last 4 graffitis (no pagination wrapper)
-- `GET /last-galleries` — last 6 gallery entries
-- `GET /{id}/galleries` — galleries for a graffiti
-- `POST /api/v1/graffiti/create` — auth required; body: `title`, `description`, `category` (UUID), `artist_id`, `latitude` (float), `longitude` (float)
-- `POST /{id}/pictures` — upload multiple files (`files[]`), auth required
-- `POST /graffitis/store/picture` — upload single picture; server generates `lg`, `md`, `sm`, `thumb` variants
+- `GET` — paginated `{data, links, meta}`; params `page`, `per_page` (default 20),
+  `category` (UUID), `artist` (UUID), `sort` (`latest` | `oldest`). `q` is
+  accepted but currently ignored — `graffitis` has no searchable text column.
+- `GET /{id}` — one graffiti
+- `GET /{id}/sightings` — sightings of a graffiti
+- `POST /api/v1/graffitis` — **the alta**: auth + `create entry` permission, one
+  `multipart/form-data` request that creates graffiti, first sighting and photos
+  together. Fields: `category` (UUID, required), `artist_id` (UUID, required),
+  `latitude` / `longitude` (float, required, in range), `state` (optional:
+  `intact` | `damaged` | `painted_over` | `removed`), `description` (optional,
+  lands on the sighting), `files[]` (required, 1–10 images, 10 MB each).
+  **There is no `title` field** — do not send one.
+- `POST /{id}/sightings` — adds a later sighting (`state`, `description`,
+  `files[]`) to an existing graffiti; auth required
+- `POST /{id}/vote` — auth required
 
-Response fields per graffiti: `id` (UUID), `title`, `description`, `type` (category UUID), `latitude` (string), `longitude` (string), `galleries` (array)
+Response fields per graffiti: `id` (UUID), `category` (UUID), `latitude`,
+`longitude`, `vote`, `active`, `cover`, `sightings`. Each sighting carries
+`spotted_by`, `spotted_at`, `state`, `description`, `photos`; each photo carries
+`files` with the `lg`, `md`, `sm` and `thumb` variants generated server-side.
+The names `galleries` and `pictures` are retired — they are `sightings` and
+`photos`.
 
-**Artists** (`/api/v1/artists`):
-- `GET` — paginated
+**Sightings** (`/api/v1/sightings`): `GET` — latest sightings, param `per_page`
+(default 6).
+
+**Artists** (`/api/v1/artists`): `GET` — `{data: [...]}` with `id`, `name`,
+`username`, `avatar`, `about_me`, `instagram`, `twitter`.
+
+**Meta:** `GET /api/v1/version`, `GET /api/v1/health` — public.
+
+## Shared contract
+
+The Graffiti / Sighting / Photo contract shared with the `GMuseo` backend lives
+in the `gmuseo` OpenSpec store, at
+`/home/max/workspace/src/gitlab.com/specs/gmuseo-specs`. It is the source of
+truth when this file and the backend disagree. Consult it with:
+
+```bash
+openspec list --specs --store gmuseo
+```
 
 ## Native capabilities (Capacitor plugins installed)
 

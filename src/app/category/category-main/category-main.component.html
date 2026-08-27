@@ -1,41 +1,46 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>category</ion-title>
+    <ion-title>{{ category()?.name ?? 'Categoría' }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
-  <ion-grid>
-    <ion-row>
-      <ion-col [size]="12">
-        <div
-          class="banner"
-          [style.backgroundImage]="'url(' + category?.image + ')'"
-          >
-          <span>{{ category?.name }}</span>
-        </div>
-      </ion-col>
-      @for (graffiti of category?.graffitis; track graffiti) {
-        <ion-col
-          [size]="4"
-          class="ion-padding"
-          >
-          <div class="graffiti-thumb">
-            <div>
-              <a [routerLink]="['/graffiti/' + graffiti.id]">
-                <img
-                  [src]="graffiti.image"
-                  width="100%"
-                  [style.height]="'max-content'"
-                  />
-              </a>
-            </div>
-            <span>
-              {{ graffiti.name }}
-            </span>
+  @if (loading()) {
+    <div class="state">
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
+  }
+
+  @if (error()) {
+    <ion-text color="danger">
+      <p class="state">{{ error() }}</p>
+    </ion-text>
+  }
+
+  @if (category(); as current) {
+    <ion-grid>
+      <ion-row>
+        <ion-col [size]="12">
+          <div
+            class="banner"
+            [style.backgroundImage]="'url(' + coverFor(current.id) + ')'">
+            <span>{{ current.name }}</span>
           </div>
+          <p class="description">{{ current.description }}</p>
         </ion-col>
-      }
-    </ion-row>
-  </ion-grid>
+
+        @for (graffiti of graffitis(); track graffiti.id) {
+          <ion-col [size]="4" class="ion-padding">
+            <a class="graffiti-thumb" [routerLink]="['/tabs/catalog', graffiti.id]">
+              <img [src]="thumbnail(graffiti)" [alt]="current.name" width="100%" />
+            </a>
+          </ion-col>
+        } @empty {
+          <ion-col [size]="12">
+            <p class="state">Todavía no hay graffitis en esta categoría.</p>
+          </ion-col>
+        }
+      </ion-row>
+    </ion-grid>
+  }
 </ion-content>

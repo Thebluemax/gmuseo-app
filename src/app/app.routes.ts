@@ -18,6 +18,11 @@ export const routes: Routes = [
           import('./catalog/presentation/categories/categories.page').then((m) => m.CategoriesPage),
       },
       {
+        path: 'category',
+        loadChildren: () =>
+          import('./category/category.routes').then((m) => m.categoryRoutes),
+      },
+      {
         path: 'submit',
         canActivate: [authGuard],
         loadComponent: () =>

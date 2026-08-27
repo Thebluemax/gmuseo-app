@@ -1,30 +1,37 @@
-import { Component, OnInit } from '@angular/core';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow, IonCol } from '@ionic/angular/standalone';
-import { CategoryMock } from 'src/app/mocks/category.mock';
-import { Category } from 'src/app/models/category';
+import { Component, inject, OnInit } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import {
+  IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow, IonCol,
+  IonSpinner, IonText,
+} from '@ionic/angular/standalone';
+import { CategoryService } from 'src/app/catalog/application/category.service';
 
 @Component({
   selector: 'app-category',
   templateUrl: './category.page.html',
   styleUrls: ['./category.page.scss'],
   standalone: true,
-  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow, IonCol],
+  imports: [
+    IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow, IonCol,
+    IonSpinner, IonText,
+    RouterLink,
+  ],
 })
 export class CategoryPage implements OnInit {
-  private categories: Category[] = [];
+  private categoryService = inject(CategoryService);
 
-  ngOnInit() {
-    this.categories = new CategoryMock().getCategoryList();
-    this.loadGraffitis();
+  readonly categories = this.categoryService.categories;
+  readonly loading = this.categoryService.loading;
+  readonly error = this.categoryService.error;
+
+  async ngOnInit() {
+    await this.categoryService.loadList();
+    // Covers are decoration: the grid renders on the list alone and each cell
+    // swaps its fallback for a real photo whenever that photo arrives.
+    void this.categoryService.loadCovers(this.categories());
   }
 
-  getCategories(): Category[] {
-    return this.categories;
-  }
-
-  loadGraffitis() {
-    this.categories.forEach((category) => {
-      category.graffitis = new CategoryMock().getCategoryGraffitis();
-    });
+  coverFor(categoryId: string): string {
+    return this.categoryService.coverFor(categoryId);
   }
 }
