@@ -1,11 +1,17 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'io.ionic.starter',
+  appId: 'io.gmuseo.app',
   appName: 'gmuseo',
   webDir: 'www',
   server: {
-    androidScheme: 'https'
+    // Serve the app from https://localhost. Prod API + media are HTTPS
+    // (api.gmuseo.maximilianofernandez.net, self-signed cert trusted via
+    // res/xml/network_security_config.xml), so same-scheme, no mixed content.
+    // allowMixedContent stays on only for LAN dev over http (MinIO/local API);
+    // those hosts are whitelisted for cleartext in the network security config.
+    androidScheme: 'https',
+    allowMixedContent: true
   },
   plugins: {
     // Route HttpClient requests through the native HTTP layer (outside the

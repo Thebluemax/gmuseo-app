@@ -3,20 +3,21 @@ import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
-  IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonContent,
-  IonItem, IonLabel, IonSelect, IonSelectOption, IonButton, IonIcon,
-  IonText, IonSpinner, IonNote, IonTextarea, ToastController,
+  IonContent, IonItem, IonLabel, IonSelect, IonSelectOption,
+  IonButton, IonIcon, IonText, IonSpinner, IonNote, IonTextarea,
+  IonToggle, ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { cameraOutline, locationOutline, closeOutline } from 'ionicons/icons';
+import { cameraOutline, locationOutline, closeOutline, arrowBackOutline } from 'ionicons/icons';
 import { CameraPort } from '../../domain/ports/camera.port';
 import { GeolocationPort } from '../../domain/ports/geolocation.port';
 import {
-  Artist, CapturedPhoto, Coordinates, GraffitiState,
+  Artist, CapturedPhoto, Coordinates, GraffitiState, UnauthorizedError,
 } from '../../domain/models/submission.model';
 import { CreateGraffitiUseCase } from '../../application/create-graffiti.usecase';
 import { SubmissionRepository } from '../../domain/submission.repository';
 import { CategoryService } from '../../../catalog/application/category.service';
+import { AuthService } from '../../../auth/application/auth.service';
 
 const STATES: { value: GraffitiState; label: string }[] = [
   { value: 'intact', label: 'Intacto' },
@@ -31,9 +32,9 @@ const STATES: { value: GraffitiState; label: string }[] = [
   styleUrls: ['./submit.page.scss'],
   standalone: true,
   imports: [
-    IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonContent,
-    IonItem, IonLabel, IonSelect, IonSelectOption, IonButton, IonIcon,
-    IonText, IonSpinner, IonNote, IonTextarea,
+    IonContent, IonItem, IonLabel, IonSelect, IonSelectOption,
+    IonButton, IonIcon, IonText, IonSpinner, IonNote, IonTextarea,
+    IonToggle,
     FormsModule, DecimalPipe,
   ],
 })
@@ -43,15 +44,21 @@ export class SubmitPage implements OnInit {
   private createGraffiti = inject(CreateGraffitiUseCase);
   private submissionRepo = inject(SubmissionRepository);
   private router = inject(Router);
+  private auth = inject(AuthService);
   private toast = inject(ToastController);
   readonly categoryService = inject(CategoryService);
 
   readonly states = STATES;
 
+  // Everything except the description defaults silently; the user only adds a
+  // photo (location is captured automatically) and optionally a description.
+  // The advanced toggle reveals category/artist/state for manual override.
   categoryId = '';
   artistId = '';
   state: GraffitiState = 'intact';
   description = '';
+
+  readonly showAdvanced = signal(false);
 
   readonly photos = signal<CapturedPhoto[]>([]);
   readonly coordinates = signal<Coordinates | null>(null);
@@ -61,23 +68,31 @@ export class SubmitPage implements OnInit {
   readonly submitting = signal(false);
   readonly error = signal<string | null>(null);
 
+  // Artist is intentionally NOT required: the API's /artists list is currently
+  // unavailable, and the field is a silent default anyway. create() omits
+  // artist_id when none is chosen; the server assigns the anonymous artist.
   readonly canSubmit = computed(
     () =>
       this.photos().length > 0 &&
       !!this.coordinates() &&
       !!this.categoryId &&
-      !!this.artistId &&
       !this.submitting()
   );
 
   constructor() {
-    addIcons({ cameraOutline, locationOutline, closeOutline });
+    addIcons({ cameraOutline, locationOutline, closeOutline, arrowBackOutline });
   }
 
   ngOnInit(): void {
-    this.categoryService.loadList();
+    this.loadCategories();
     this.loadArtists();
     this.locate(); // best-effort GPS on entry
+  }
+
+  private async loadCategories(): Promise<void> {
+    await this.categoryService.loadList();
+    // Default to the first category — the form hides this choice from the user.
+    this.categoryId = this.categoryService.categories()[0]?.id ?? '';
   }
 
   private async loadArtists(): Promise<void> {
@@ -92,11 +107,17 @@ export class SubmitPage implements OnInit {
     }
   }
 
+  back(): void {
+    this.router.navigate(['/tabs/catalog']);
+  }
+
   async capture(): Promise<void> {
     this.error.set(null);
     try {
       const captured = await this.camera.capturePhotos();
       this.photos.update((current) => [...current, ...captured]);
+      // Refresh GPS on every photo so location always matches the shot.
+      await this.locate();
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'No se pudo capturar la foto.');
     }
@@ -124,7 +145,7 @@ export class SubmitPage implements OnInit {
   async submit(): Promise<void> {
     const photos = this.photos();
     const coordinates = this.coordinates();
-    if (photos.length === 0 || !coordinates || !this.categoryId || !this.artistId) return;
+    if (photos.length === 0 || !coordinates || !this.categoryId) return;
 
     this.submitting.set(true);
     this.error.set(null);
@@ -140,6 +161,12 @@ export class SubmitPage implements OnInit {
       await this.showToast('¡Graffiti subido!');
       this.router.navigate(['/tabs/catalog']);
     } catch (err) {
+      if (err instanceof UnauthorizedError) {
+        // Dead session: tear down auth and send the user to login to re-auth.
+        await this.showToast('Tu sesión expiró. Iniciá sesión de nuevo.');
+        await this.auth.forceLogout();
+        return;
+      }
       this.error.set(err instanceof Error ? err.message : 'No se pudo crear el graffiti.');
     } finally {
       this.submitting.set(false);

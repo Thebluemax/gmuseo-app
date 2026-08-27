@@ -3,6 +3,14 @@ export interface Coordinates {
   longitude: number;
 }
 
+/** Thrown when the API rejects a write with 401 — the session is dead. */
+export class UnauthorizedError extends Error {
+  constructor(message = 'Sesión expirada.') {
+    super(message);
+    this.name = 'UnauthorizedError';
+  }
+}
+
 /**
  * A photo captured from the device. `blob` is what gets uploaded (multipart);
  * `previewUrl` is an object URL for showing it in the form.

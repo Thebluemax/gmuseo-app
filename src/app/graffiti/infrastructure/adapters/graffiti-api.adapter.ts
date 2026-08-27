@@ -38,11 +38,24 @@ export interface GraffitiDto {
   sightings: GraffitiSightingDto[];
 }
 
-/** Prefix relative `/storage/...` paths with the media host. Leaves absolute URLs untouched. */
+/**
+ * Root a media path on the configured media host. The API returns absolute
+ * URLs to a legacy bucket host (bucket.gmuseo.com) that no longer serves the
+ * files, so we keep only the object path and re-root it on `mediaUrl` (R2). A
+ * relative path is prefixed directly.
+ */
 function mediaUrl(path: string): string {
   if (!path) return '';
-  if (/^https?:\/\//.test(path)) return path;
-  return `${environment.mediaUrl}${path.startsWith('/') ? '' : '/'}${path}`;
+  let rel = path;
+  if (/^https?:\/\//.test(path)) {
+    try {
+      const u = new URL(path);
+      rel = u.pathname + u.search;
+    } catch {
+      return path;
+    }
+  }
+  return `${environment.mediaUrl}${rel.startsWith('/') ? '' : '/'}${rel}`;
 }
 
 export function toGraffiti(dto: GraffitiDto): Graffiti {
