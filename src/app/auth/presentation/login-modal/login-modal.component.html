@@ -1,0 +1,53 @@
+<ion-content class="login-modal__content">
+  <div class="login-modal__backdrop" (click)="dismiss()"></div>
+
+  <div class="login-modal__card">
+    <ion-button
+      class="login-modal__close"
+      fill="clear"
+      size="small"
+      (click)="dismiss()">
+      <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+    </ion-button>
+
+    <h2 class="login-modal__title">Iniciar sesión</h2>
+
+    @if (error()) {
+      <ion-text color="danger">
+        <p class="login-modal__error">{{ error() }}</p>
+      </ion-text>
+    }
+
+    <ion-item lines="full" class="login-modal__field">
+      <ion-input
+        type="email"
+        label="Email"
+        labelPlacement="floating"
+        [(ngModel)]="email"
+        autocomplete="email">
+      </ion-input>
+    </ion-item>
+
+    <ion-item lines="full" class="login-modal__field">
+      <ion-input
+        type="password"
+        label="Contraseña"
+        labelPlacement="floating"
+        [(ngModel)]="password"
+        autocomplete="current-password">
+      </ion-input>
+    </ion-item>
+
+    <ion-button
+      expand="block"
+      class="ion-margin-top"
+      [disabled]="loading()"
+      (click)="login()">
+      @if (loading()) {
+        <ion-spinner name="crescent"></ion-spinner>
+      } @else {
+        Entrar
+      }
+    </ion-button>
+  </div>
+</ion-content>

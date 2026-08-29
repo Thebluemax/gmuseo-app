@@ -1,0 +1,30 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Categorías</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  @if (loading()) {
+    <div class="loading-container">
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
+  }
+
+  @if (error()) {
+    <ion-text color="danger">
+      <p class="ion-padding">{{ error() }}</p>
+    </ion-text>
+  }
+
+  <ion-list>
+    @for (category of categories(); track category.id) {
+      <ion-item [routerLink]="['/catalog/category', category.id]" detail>
+        <ion-label>
+          <h2>{{ category.name }}</h2>
+          <p>{{ category.description }}</p>
+        </ion-label>
+      </ion-item>
+    }
+  </ion-list>
+</ion-content>

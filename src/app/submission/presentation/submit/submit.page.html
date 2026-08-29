@@ -1,0 +1,127 @@
+<ion-content>
+  <div class="submit">
+  <!-- Minimalist, theme-aware top bar -->
+  <header class="topbar">
+    <button type="button" class="topbar__back" (click)="back()" aria-label="Volver">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+    </button>
+    <h1 class="topbar__title">Nuevo graffiti</h1>
+  </header>
+
+  @if (error()) {
+    <ion-text color="danger"><p class="submit__error">{{ error() }}</p></ion-text>
+  }
+
+  <!-- Photos -->
+  @if (photos().length > 0) {
+    <div class="thumbs">
+      @for (p of photos(); track p.previewUrl; let i = $index) {
+        <div class="thumb">
+          <img class="thumb__img" [src]="p.previewUrl" alt="Foto del graffiti" />
+          <button type="button" class="thumb__remove" (click)="removePhoto(i)" aria-label="Quitar foto">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+      }
+    </div>
+  }
+  <ion-button expand="block" fill="outline" (click)="capture()">
+    <ion-icon slot="start" name="camera-outline"></ion-icon>
+    {{ photos().length > 0 ? 'Agregar más fotos' : 'Tomar fotos' }}
+  </ion-button>
+
+  <!-- Location (captured automatically with each photo) -->
+  <ion-item lines="full">
+    <ion-icon slot="start" name="location-outline"></ion-icon>
+    <ion-label>
+      @if (locating()) {
+        Obteniendo ubicación…
+      } @else if (coordinates(); as c) {
+        {{ c.latitude | number: '1.5-5' }}, {{ c.longitude | number: '1.5-5' }}
+      } @else {
+        Ubicación no disponible
+      }
+    </ion-label>
+  </ion-item>
+
+  <!-- Description -->
+  <ion-item lines="full">
+    <ion-textarea
+      label="Descripción (opcional)"
+      labelPlacement="floating"
+      [autoGrow]="true"
+      [(ngModel)]="description">
+    </ion-textarea>
+  </ion-item>
+
+  <!-- Advanced options toggle -->
+  <ion-item lines="none">
+    <ion-toggle
+      [checked]="showAdvanced()"
+      (ionChange)="showAdvanced.set($event.detail.checked)">
+      Opciones avanzadas
+    </ion-toggle>
+  </ion-item>
+
+  @if (showAdvanced()) {
+    <!-- Category -->
+    <ion-item lines="full">
+      <ion-select
+        label="Categoría"
+        labelPlacement="floating"
+        [(ngModel)]="categoryId"
+        placeholder="Elegí una categoría">
+        @for (cat of categoryService.categories(); track cat.id) {
+          <ion-select-option [value]="cat.id">{{ cat.name }}</ion-select-option>
+        }
+      </ion-select>
+    </ion-item>
+    @if (categoryService.error()) {
+      <ion-note color="danger" class="hint">{{ categoryService.error() }}</ion-note>
+    }
+
+    <!-- Artist -->
+    <ion-item lines="full">
+      <ion-select
+        label="Artista"
+        labelPlacement="floating"
+        [(ngModel)]="artistId"
+        placeholder="Elegí un artista">
+        @for (artist of artists(); track artist.id) {
+          <ion-select-option [value]="artist.id">{{ artist.name }}</ion-select-option>
+        }
+      </ion-select>
+    </ion-item>
+
+    <!-- State -->
+    <ion-item lines="full">
+      <ion-select label="Estado" labelPlacement="floating" [(ngModel)]="state">
+        @for (s of states; track s.value) {
+          <ion-select-option [value]="s.value">{{ s.label }}</ion-select-option>
+        }
+      </ion-select>
+    </ion-item>
+  }
+
+  <ion-button
+    expand="block"
+    class="ion-margin-top"
+    [disabled]="!canSubmit()"
+    (click)="submit()">
+    @if (submitting()) {
+      <ion-spinner name="crescent"></ion-spinner>
+    } @else {
+      Publicar
+    }
+  </ion-button>
+
+  <ion-button
+    expand="block"
+    fill="clear"
+    color="medium"
+    [disabled]="submitting()"
+    (click)="back()">
+    Cancelar
+  </ion-button>
+  </div>
+</ion-content>

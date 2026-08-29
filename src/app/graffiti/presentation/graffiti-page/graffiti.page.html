@@ -1,0 +1,39 @@
+<ion-content [fullscreen]="true" [scrollY]="false" class="reels-content">
+ <div class="reels-top">
+    <button type="button" class="reels-top__brand" (click)="onAppNameClick()">
+      {{ appName }}
+    </button>
+    @if (authService.isAuthenticated()) {
+      <ion-button fill="clear" [routerLink]="['/tabs/profile']" aria-label="Perfil">
+        <ion-icon slot="icon-only" name="person-circle-outline"></ion-icon>
+      </ion-button>
+    } @else {
+      <ion-button fill="clear" (click)="onAppNameClick()">
+        <ion-icon slot="icon-only" name="log-in-outline"></ion-icon>
+      </ion-button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="reels-center">
+      <ion-spinner name="crescent" />
+    </div>
+  } @else if (graffitis().length > 0) {
+    <gm-graffiti-reels [graffitis]="graffitis()" />
+  } @else {
+    <div class="reels-placeholder">
+      <img class="reels-placeholder__img" src="assets/placeholder.svg" alt="" />
+      <div class="reels-placeholder__message">
+        {{ error() ?? 'No hay graffitis disponibles.' }}
+      </div>
+    </div>
+  }
+
+  @if (authService.isAuthenticated()) {
+    <ion-fab slot="fixed" vertical="bottom" horizontal="start">
+      <ion-fab-button color="primary" [routerLink]="['/tabs/submit']" aria-label="Agregar graffiti">
+        <ion-icon name="add-outline"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
+  }
+</ion-content>

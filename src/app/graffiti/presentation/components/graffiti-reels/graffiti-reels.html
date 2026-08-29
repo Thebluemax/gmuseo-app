@@ -1,0 +1,30 @@
+<div class="reels" #stage>
+  @if (currentImage(); as img) {
+    <span>{{img.url}}</span>
+    <img class="reels__img" [src]="img.url" alt="Graffiti" />
+  } @else {
+    <div class="reels__img reels__img--empty"></div>
+  }
+
+  @if (current(); as graffiti) {
+    <div class="reels__byline">
+      @if (graffiti.artist; as artist) {
+        <a class="reels__artist" [routerLink]="['/tabs/artist', artist.id]">{{ artist.name }}</a>
+      } @else {
+        <!-- Most street art is anonymous. Unknown authorship is the answer, not
+             a gap: it is stated plainly and links nowhere. -->
+        <span class="reels__artist reels__artist--unknown">Autor desconocido</span>
+      }
+    </div>
+  }
+
+  @if (images().length > 1) {
+    <div class="reels__dots">
+      @for (img of images(); track img.id; let i = $index) {
+        <span class="reels__dot" [class.reels__dot--active]="i === imageIndex()"></span>
+
+      }
+    </div>
+  }
+
+</div>

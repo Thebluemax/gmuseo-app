@@ -1,8 +1,7 @@
-FROM node:20 as node
+FROM node:24 AS node
 WORKDIR /app
 COPY . .
 RUN npm ci
-RUN npm install -g @angular/cli@18
 RUN npm run build
 
 FROM nginx:alpine

@@ -1,0 +1,66 @@
+.reels-content {
+  --background: #000;
+}
+
+.reels-top {
+  position: absolute;
+  bottom: calc(8px + var(--ion-safe-area-bottom, 0px));
+  left: 8px;
+  right: 8px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  ion-button {
+    position: absolute;
+    right: 0;
+    --color: #fff;
+  }
+}
+
+.reels-top__brand {
+  background: none;
+  border: 0;
+  padding: 8px;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+}
+
+.reels-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.reels-placeholder {
+  position: relative;
+  height: 100%;
+  width: 100%;
+
+  &__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &__message {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    text-align: center;
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+  }
+}

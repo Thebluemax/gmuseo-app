@@ -124,3 +124,9 @@
   ion-item {
     --transition: none;
   }
+/* Semi-transparent login modal (clicking app name when unauthenticated) */
+ion-modal.login-modal-overlay {
+  --background: transparent;
+  --box-shadow: none;
+  --backdrop-opacity: 0.6;
+}

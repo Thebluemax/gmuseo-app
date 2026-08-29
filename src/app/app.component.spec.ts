@@ -1,46 +1,42 @@
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-
-import { RouterTestingModule } from '@angular/router/testing';
+import { provideRouter } from '@angular/router';
 
 import { AppComponent } from './app.component';
 
 describe('AppComponent', () => {
-
-
   beforeEach(async () => {
-
     await TestBed.configureTestingModule({
-      declarations: [AppComponent],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      imports: [RouterTestingModule.withRoutes([])],
+      imports: [AppComponent],
+      providers: [provideZonelessChangeDetection(), provideRouter([])],
     }).compileComponents();
   });
 
   it('should create the app', () => {
     const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
+
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should have menu labels', () => {
+  it('renders the Ionic app shell around a router outlet', async () => {
     const fixture = TestBed.createComponent(AppComponent);
-    const component = fixture.componentInstance;
-    fixture.detectChanges();
-    const app = fixture.nativeElement;
-    const menuItems = app.querySelectorAll('ion-tab-button');
-    expect(menuItems.length).toEqual(component.getAppPages().length);
-    expect(menuItems[0].textContent).toContain('Main');
-    expect(menuItems[1].textContent).toContain('Category');
+    await fixture.whenStable();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('ion-app')).toBeTruthy();
+    expect(host.querySelector('ion-app > ion-router-outlet')).toBeTruthy();
   });
 
-  it('should have urls', () => {
+  /**
+   * Navigation lives in the tab shell (`gm-tabs`), not in the root component.
+   * The legacy side menu this spec used to assert on was removed in c600c69.
+   */
+  it('carries no navigation chrome of its own', async () => {
     const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
-    const app = fixture.nativeElement;
-    const menuItems = app.querySelectorAll('ion-tab-button');
-    expect(menuItems[0].getAttribute('ng-reflect-router-link')).toEqual('/main');
-    expect(menuItems[1].getAttribute('ng-reflect-router-link')).toEqual('/category');
-  });
+    await fixture.whenStable();
 
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelectorAll('ion-tab-button').length).toBe(0);
+    expect(host.querySelectorAll('ion-menu').length).toBe(0);
+  });
 });
