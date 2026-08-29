@@ -14,7 +14,9 @@
     "lint": "ng lint",
     "build:prod": "ng build --aot --configuration production",
     "test:prod": "ng test --browsers=ChromeHeadless --watch=false --code-coverage",
-    "build:lan": "ng build --aot --configuration lan"
+    "build:lan": "ng build --aot --configuration lan",
+    "sync:lan": "GMUSEO_LAN=1 cap sync android",
+    "android:lan": "npm run build:lan && npm run sync:lan"
   },
   "private": true,
   "dependencies": {
