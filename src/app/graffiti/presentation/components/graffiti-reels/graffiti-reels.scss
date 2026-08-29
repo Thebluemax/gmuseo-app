@@ -73,14 +73,23 @@
   letter-spacing: 0.5px;
 }
 
+// Sits above the bottom strip, which is busier than its name suggests:
+// `.reels-top` is anchored to the bottom (brand centred, profile button right)
+// and the submit FAB overlaps its left corner. 80px clears both.
 .reels__byline {
   position: absolute;
   left: 16px;
-  bottom: 32px;
+  right: 16px;
+  bottom: calc(80px + var(--ion-safe-area-bottom, 0px));
   z-index: 2;
 }
 
 .reels__artist {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: #fff;
   font-size: 0.95rem;
   font-weight: 600;
