@@ -159,6 +159,91 @@ describe('authInterceptor', () => {
     retried.flush({ ok: true });
   });
 
+  it('tears the session down on a 403 without trying to refresh', async () => {
+    http.get(`${BASE_URL}/v1/graffitis`).subscribe({ error: () => undefined });
+
+    httpMock
+      .expectOne(`${BASE_URL}/v1/graffitis`)
+      .flush({ message: 'Forbidden.' }, { status: 403, statusText: 'Forbidden' });
+
+    // A credential lacking the required ability does not gain it by renewing.
+    httpMock.expectNone(`${BASE_URL}/v1/auth/refresh`);
+    await settle();
+    expect(await storage.getAccessToken()).toBeNull();
+  });
+
+  it('does not refresh a second time when the retry is also rejected', async () => {
+    let reachedCaller = false;
+    http.get(`${BASE_URL}/v1/graffitis`).subscribe({ error: () => (reachedCaller = true) });
+
+    httpMock
+      .expectOne(`${BASE_URL}/v1/graffitis`)
+      .flush({ message: 'Unauthenticated.' }, { status: 401, statusText: 'Unauthorized' });
+
+    httpMock.expectOne(`${BASE_URL}/v1/auth/refresh`).flush({
+      data: {
+        access_token: '7|second-access',
+        refresh_token: '8|second-refresh',
+        token_type: 'Bearer',
+        expires_in: 900,
+      },
+    });
+
+    await settle();
+    httpMock
+      .expectOne(`${BASE_URL}/v1/graffitis`)
+      .flush({ message: 'Unauthenticated.' }, { status: 401, statusText: 'Unauthorized' });
+
+    // The loop is broken, which is the half that protects the user from a frozen
+    // app: no second refresh, and the error reaches the caller.
+    await settle();
+    httpMock.expectNone(`${BASE_URL}/v1/auth/refresh`);
+    expect(reachedCaller).toBeTrue();
+  });
+
+  it('should tear the session down when the retry is also rejected', () => {
+    pending(
+      'Diverges from identity/renovacion-de-sesion, scenario "El reintento vuelve a fallar", ' +
+        'which requires the client to log out at this point. It does not: handle401 calls ' +
+        'next(retried) from inside the observable the outer catchError returns, and RxJS does ' +
+        'not route those errors back into that catchError. The RETRIED branch is therefore ' +
+        'unreachable and the session is left in place while every request 401s. Recorded as a ' +
+        'divergence rather than fixed here: this change adds coverage, it does not change ' +
+        'behaviour.'
+    );
+  });
+
+  it('shares one refresh between requests that expire together', async () => {
+    const urls = ['/v1/graffitis', '/v1/artists', '/v1/categories'];
+    urls.forEach((u) => http.get(`${BASE_URL}${u}`).subscribe({ error: () => undefined }));
+
+    urls.forEach((u) =>
+      httpMock
+        .expectOne(`${BASE_URL}${u}`)
+        .flush({ message: 'Unauthenticated.' }, { status: 401, statusText: 'Unauthorized' })
+    );
+
+    // Three parallel refreshes would present a token the first one revoked, and
+    // log out a session that was perfectly valid.
+    const refreshes = httpMock.match(`${BASE_URL}/v1/auth/refresh`);
+    expect(refreshes.length).toBe(1);
+    refreshes[0].flush({
+      data: {
+        access_token: '9|shared-access',
+        refresh_token: '10|shared-refresh',
+        token_type: 'Bearer',
+        expires_in: 900,
+      },
+    });
+
+    await settle();
+    urls.forEach((u) => {
+      const retried = httpMock.expectOne(`${BASE_URL}${u}`);
+      expect(retried.request.headers.get('Authorization')).toBe('Bearer 9|shared-access');
+      retried.flush({ ok: true });
+    });
+  });
+
   it('does not chain a second refresh when the refresh itself fails', async () => {
     http.get(`${BASE_URL}/v1/graffitis`).subscribe({ error: () => undefined });
 
