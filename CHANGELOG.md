@@ -23,6 +23,20 @@ store — see [CLAUDE.md](CLAUDE.md#shared-contract).
   `GET /v1/artists` and asserting the mapped artist exposes no account data
 
 ### Changed
+- `@aparajita/capacitor-secure-storage` 3.0.2 → 5.2.0, the latest release of the
+  line that depends on Capacitor 5. The plugin declares Capacitor in
+  `dependencies` rather than `peerDependencies`, so npm was installing a nested
+  `@capacitor/core@4.8.2` alongside the project's 5.7.8 and marking the plugin's
+  `@capacitor/ios@4.8.2` as `invalid`. The Android side was already fine — the
+  plugin's Gradle module compiles against `project(':capacitor-android')`, so the
+  APK used Capacitor 5 — but the JavaScript bundle shipped a second copy of
+  Capacitor, and generating the iOS platform would have produced a Podfile
+  mixing Capacitor 4 and 5. The plugin holds the access and refresh tokens, so
+  it is not a dependency to leave drifting. No application code changed: `get`,
+  `set` and `remove` keep the same signatures, the new parameters are optional,
+  and the key names are untouched. It will drift again the day Capacitor itself
+  is upgraded — that upgrade has to include this plugin in its scope from the
+  start
 - **BREAKING (contract)**: `Graffiti` gains `artist` (`{id, name} | null`). The
   API replaced `artist_id` with the artist object, so a client can label a piece
   without a second request. `null` is unknown authorship — the majority case in
