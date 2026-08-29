@@ -23,6 +23,12 @@ export const routes: Routes = [
           import('./category/category.routes').then((m) => m.categoryRoutes),
       },
       {
+        path: 'artist/:id',
+        loadComponent: () =>
+          import('./artists/presentation/artist-collection/artist-collection.page')
+            .then((m) => m.ArtistCollectionPage),
+      },
+      {
         path: 'submit',
         canActivate: [authGuard],
         loadComponent: () =>

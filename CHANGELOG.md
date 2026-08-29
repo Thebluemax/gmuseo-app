@@ -9,6 +9,34 @@ store — see [CLAUDE.md](CLAUDE.md#shared-contract).
 ## [Unreleased]
 
 ### Added
+- `artists` bounded context: `Artist` / `ArtistRef` domain models,
+  `ArtistRepository` and its HTTP implementation against the paginated
+  `GET /v1/artists`, and `ArtistService`. An artist is a catalogue entry, never
+  an account: the model carries no username, avatar or profile text, and no link
+  to a platform account
+- `ArtistCollectionPage` at `/tabs/artist/:id` — everything attributed to one
+  artist, fed by `GET /v1/graffitis?artist=<uuid>`. An artist with no work is a
+  valid entry and says so, rather than showing an error
+- Authorship on the graffiti view: the artist's name, linking to their
+  collection, or "Autor desconocido" with no link when authorship is unknown
+- Adapter tests pinning the paginated `{data, links, meta}` shape of
+  `GET /v1/artists` and asserting the mapped artist exposes no account data
+
+### Changed
+- **BREAKING (contract)**: `Graffiti` gains `artist` (`{id, name} | null`). The
+  API replaced `artist_id` with the artist object, so a client can label a piece
+  without a second request. `null` is unknown authorship — the majority case in
+  street art, and a real answer rather than a missing value
+- The alta no longer looks up an account named "Anonymous" to attribute a piece
+  to. Anonymous is now the absence of `artist_id` in the multipart request,
+  which is exactly how the API records unknown authorship. `NewGraffiti.artistId`
+  becomes optional, and a catalogue that fails to load no longer blocks an
+  upload
+- `GET /v1/artists` is read as a paginated envelope instead of a bare array, and
+  the fields consumed are `id`, `name`, `bio`, `instagram`, `website` and
+  `graffiti_count`
+
+### Added
 - `CategoryRepository.getCoverImage()` — derives a category cover from one of its
   graffitis (`GET /v1/graffitis?category=<uuid>`, `sm` variant), because the API
   carries no category image

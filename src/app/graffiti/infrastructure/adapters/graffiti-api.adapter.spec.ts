@@ -5,6 +5,7 @@ function dto(overrides: Partial<GraffitiDto> = {}): GraffitiDto {
   return {
     id: 'a20c46cf-836b-42d8-9a96-67189aa8490f',
     category: 'a20c46cf-596c-4481-a214-ec3f025b83a8',
+    artist: { id: 'a20c46cf-2c90-4a40-b83b-d5fa7755a33e', name: 'Artur Artist' },
     latitude: -5.625272,
     longitude: 65.357251,
     vote: 1,
@@ -60,6 +61,7 @@ describe('toGraffiti', () => {
 
     expect(Object.keys(graffiti).sort()).toEqual([
       'active',
+      'artist',
       'category',
       'cover',
       'id',
@@ -110,6 +112,55 @@ describe('toGraffiti', () => {
     );
 
     expect(graffiti.cover).toBe(`${environment.mediaUrl}/gmuseo/graffitis/cover_700.jpg`);
+  });
+
+  describe('authorship', () => {
+    it('maps the artist as a label and a link, nothing else', () => {
+      const { artist } = toGraffiti(dto());
+
+      expect(artist).toEqual({
+        id: 'a20c46cf-2c90-4a40-b83b-d5fa7755a33e',
+        name: 'Artur Artist',
+      });
+    });
+
+    /**
+     * Unknown authorship is the majority case in street art, and it is the real
+     * answer, not a missing value. It must land as `null` — never `undefined`,
+     * never an invented name — so a template branches on one value only.
+     */
+    it('resolves unknown authorship to null, never undefined', () => {
+      const graffiti = toGraffiti(dto({ artist: null }));
+
+      expect(graffiti.artist).toBeNull();
+      expect(graffiti.artist).not.toBeUndefined();
+    });
+
+    it('collapses a malformed artist to null instead of a half-built one', () => {
+      const graffiti = toGraffiti({ ...dto(), artist: undefined } as unknown as GraffitiDto);
+
+      expect(graffiti.artist).toBeNull();
+    });
+
+    /**
+     * The API publishes no link between an artist and a platform account. The
+     * client must not carry one through even if the payload ever grew it.
+     */
+    it('carries no account data on the artist', () => {
+      const rogue = {
+        ...dto(),
+        artist: {
+          id: 'a20c46cf-2c90-4a40-b83b-d5fa7755a33e',
+          name: 'Artur Artist',
+          user_id: 'a20c46cf-0000-4000-8000-000000000000',
+          username: 'artur',
+        },
+      };
+
+      const { artist } = toGraffiti(rogue as GraffitiDto);
+
+      expect(Object.keys(artist ?? {}).sort()).toEqual(['id', 'name']);
+    });
   });
 
   it('survives a graffiti with no sightings', () => {

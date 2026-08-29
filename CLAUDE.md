@@ -35,7 +35,7 @@ Angular 21 + Ionic 8 + Capacitor 5 (web/mobile hybrid). Build output goes to `ww
 - **Reactivity**: Signals only — no NgRx, no RxJS observables for state (HTTP calls can return observables but state lives in signals)
 - **Components**: All standalone — no NgModules
 - **i18n**: Two languages, English + Spanish. API fields `_en`/`_es` only (ignore `_cat` for now)
-- **DDD structure**: bounded contexts `auth`, `catalog`, `submission`, `artists`, `shared`
+- **DDD structure**: bounded contexts `auth`, `catalog`, `graffiti`, `artists`, `submission`, `shared`
 
 Each context follows:
 ```
@@ -61,6 +61,7 @@ The application layer injects the interface only. Platform selection via Angular
   - `catalog` — `GraffitiPage`, the reels home screen
   - `categories` — `CategoriesPage` (`catalog/presentation/categories`), plain category list
   - `category` / `category/:category` — `CategoryPage` grid and `CategoryMainComponent` detail
+  - `artist/:id` — `ArtistCollectionPage`, everything attributed to one artist
   - `submit` — `SubmitPage`, behind `authGuard`
   - `profile` — `ProfilePage`, behind `authGuard`
 - `auth/login`, `auth/register`
@@ -75,9 +76,16 @@ the same reason.
 There is no global `src/app/models/` — it was deleted because a second
 definition of `Graffiti`/`Category` drifted away from the API.
 - `graffiti/domain/models/graffiti.model.ts` — `Graffiti` (`id` UUID, `category`,
-  `latitude`, `longitude`, `vote`, `active`, `cover`, `sightings`), plus
+  `artist`, `latitude`, `longitude`, `vote`, `active`, `cover`, `sightings`), plus
   `GraffitiSighting` and `GraffitiPhoto`. **A graffiti has no title, name or
-  slug** — free text lives on the sighting.
+  slug** — free text lives on the sighting. `artist` is `{id, name} | null`;
+  `null` means unknown authorship, which is the majority case and a real answer,
+  not a missing value.
+- `artists/domain/artist.model.ts` — `Artist` (`id` UUID, `name`, `bio`,
+  `instagram`, `website`, `graffitiCount`) and `ArtistRef` (`id`, `name`). **An
+  artist is not an account**: no username, avatar or socials taken from a user
+  profile, and no link to one. The API publishes no artist-account link and the
+  client must not reintroduce one.
 - `catalog/domain/category.model.ts` — `Category` (`id` UUID, `name`,
   `description`). No image field: the API carries none.
 
@@ -127,11 +135,13 @@ is XSS-readable.
 - `GET` — paginated `{data, links, meta}`; params `page`, `per_page` (default 20),
   `category` (UUID), `artist` (UUID), `sort` (`latest` | `oldest`). `q` is
   accepted but currently ignored — `graffitis` has no searchable text column.
+  Filtering by `artist` is what feeds `ArtistCollectionPage`.
 - `GET /{id}` — one graffiti
 - `GET /{id}/sightings` — sightings of a graffiti
 - `POST /api/v1/graffitis` — **the alta**: auth + `create entry` permission, one
   `multipart/form-data` request that creates graffiti, first sighting and photos
-  together. Fields: `category` (UUID, required), `artist_id` (UUID, required),
+  together. Fields: `category` (UUID, required), `artist_id` (UUID, **optional**
+  — omit it for unknown authorship; a user id is rejected with 422),
   `latitude` / `longitude` (float, required, in range), `state` (optional:
   `intact` | `damaged` | `painted_over` | `removed`), `description` (optional,
   lands on the sighting), `files[]` (required, 1–10 images, 10 MB each).
@@ -140,7 +150,8 @@ is XSS-readable.
   `files[]`) to an existing graffiti; auth required
 - `POST /{id}/vote` — auth required
 
-Response fields per graffiti: `id` (UUID), `category` (UUID), `latitude`,
+Response fields per graffiti: `id` (UUID), `category` (UUID), `artist`
+(`{id, name}` or `null` — there is no `artist_id` field), `latitude`,
 `longitude`, `vote`, `active`, `cover`, `sightings`. Each sighting carries
 `spotted_by`, `spotted_at`, `state`, `description`, `photos`; each photo carries
 `files` with the `lg`, `md`, `sm` and `thumb` variants generated server-side.
@@ -150,8 +161,17 @@ The names `galleries` and `pictures` are retired — they are `sightings` and
 **Sightings** (`/api/v1/sightings`): `GET` — latest sightings, param `per_page`
 (default 6).
 
-**Artists** (`/api/v1/artists`): `GET` — `{data: [...]}` with `id`, `name`,
-`username`, `avatar`, `about_me`, `instagram`, `twitter`.
+**Artists** (`/api/v1/artists`): the catalogue of who painted what, not a user
+directory.
+- `GET` — paginated `{data, links, meta}`; params `page`, `per_page` (clamped to
+  1–100, default 20). Fields: `id`, `name`, `bio`, `instagram`, `website`,
+  `graffiti_count`. No account data is published: no `username`, `avatar`,
+  `about_me`, `twitter`, and no indication of whether the entry is linked to an
+  account.
+- `GET /{id}` — one artist
+- `POST` / `PUT /{id}` / `DELETE /{id}` — auth + `manage artists` permission,
+  which the app does not use today. Deleting an artist does not delete their
+  work: those graffitis become unattributed.
 
 **Meta:** `GET /api/v1/version`, `GET /api/v1/health` — public.
 

@@ -27,6 +27,10 @@ function graffiti(id: string, index: number): Graffiti {
   return {
     id,
     category: 'a20c46cf-596c-4481-a214-ec3f025b83a8',
+    // Half the fixtures are unattributed, like the real catalogue.
+    artist: index % 2 === 0
+      ? { id: 'a20c46cf-2c90-4a40-b83b-d5fa7755a33e', name: 'Artur Artist' }
+      : null,
     latitude: 41.3874 + index / 1000,
     longitude: 2.1686 + index / 1000,
     vote: index,

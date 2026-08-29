@@ -35,7 +35,12 @@ export type GraffitiState = 'intact' | 'damaged' | 'painted_over' | 'removed';
  */
 export interface NewGraffiti {
   category: string; // UUID
-  artistId: string; // UUID
+  /**
+   * Catalogue artist, or absent for unknown authorship — the majority case.
+   * Anonymous is *not* sending an artist: there is no anonymous artist to point
+   * at, and inventing one would be a placeholder for the absence of data.
+   */
+  artistId?: string; // UUID
   latitude: number;
   longitude: number;
   state?: GraffitiState;

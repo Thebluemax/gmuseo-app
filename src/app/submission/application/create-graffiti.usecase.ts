@@ -4,7 +4,8 @@ import { CapturedPhoto, Coordinates, GraffitiState } from '../domain/models/subm
 
 export interface CreateGraffitiInput {
   category: string;
-  artistId: string;
+  /** Absent for unknown authorship, which is how most pieces are filed. */
+  artistId?: string;
   coordinates: Coordinates;
   photos: CapturedPhoto[];
   state?: GraffitiState;

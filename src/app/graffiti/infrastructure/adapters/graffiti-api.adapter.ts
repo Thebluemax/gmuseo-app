@@ -2,6 +2,7 @@ import { environment } from 'src/environments/environment';
 import {
   Graffiti, GraffitiPhoto, GraffitiSighting, PhotoFiles,
 } from '../../domain/models/graffiti.model';
+import { ArtistRef } from '../../../artists/domain/artist.model';
 
 export interface PhotoFilesDto {
   lg: string;
@@ -27,9 +28,15 @@ export interface GraffitiSightingDto {
   photos: GraffitiPhotoDto[];
 }
 
+export interface ArtistRefDto {
+  id: string;
+  name: string;
+}
+
 export interface GraffitiDto {
   id: string;
   category: string;
+  artist: ArtistRefDto | null;
   latitude: number;
   longitude: number;
   vote: number;
@@ -62,6 +69,7 @@ export function toGraffiti(dto: GraffitiDto): Graffiti {
   return {
     id: dto.id,
     category: dto.category,
+    artist: toArtistRef(dto.artist),
     latitude: dto.latitude,
     longitude: dto.longitude,
     vote: dto.vote,
@@ -69,6 +77,17 @@ export function toGraffiti(dto: GraffitiDto): Graffiti {
     cover: mediaUrl(dto.cover),
     sightings: (dto.sightings ?? []).map(toSighting),
   };
+}
+
+/**
+ * Unknown authorship stays `null`. An absent or malformed artist collapses to
+ * the same thing rather than to `undefined`, so a template only ever branches
+ * on one value.
+ */
+function toArtistRef(dto: ArtistRefDto | null | undefined): ArtistRef | null {
+  if (!dto?.id) return null;
+
+  return { id: dto.id, name: dto.name };
 }
 
 function toSighting(dto: GraffitiSightingDto): GraffitiSighting {

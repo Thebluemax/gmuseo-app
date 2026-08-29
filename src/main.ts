@@ -9,6 +9,8 @@ import { routes } from './app/app.routes';
 import { API_BASE_URL } from './app/shared/infrastructure/api.config';
 import { GraffitiRepository } from './app/graffiti/domain/repositories/graffiti.repository';
 import { HttpGraffitiRepository } from './app/graffiti/infrastructure/repositories/http-graffiti.repository';
+import { ArtistRepository } from './app/artists/domain/artist.repository';
+import { HttpArtistRepository } from './app/artists/infrastructure/http-artist.repository';
 import { CategoryRepository } from './app/catalog/domain/category.repository';
 import { HttpCategoryRepository } from './app/catalog/infrastructure/http-category.repository';
 import { AuthRepository } from './app/auth/domain/auth.repository';
@@ -38,6 +40,7 @@ bootstrapApplication(AppComponent, {
     { provide: API_BASE_URL, useValue: environment.apiUrl },
     { provide: GraffitiRepository, useClass: HttpGraffitiRepository },
     { provide: CategoryRepository, useClass: HttpCategoryRepository },
+    { provide: ArtistRepository, useClass: HttpArtistRepository },
     { provide: AuthRepository, useClass: SanctumAuthRepository },
     { provide: SubmissionRepository, useClass: HttpSubmissionRepository },
     // Native camera/GPS on device, web fallbacks in the browser.

@@ -72,3 +72,23 @@
   font-weight: 700;
   letter-spacing: 0.5px;
 }
+
+.reels__byline {
+  position: absolute;
+  left: 16px;
+  bottom: 32px;
+  z-index: 2;
+}
+
+.reels__artist {
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.reels__artist--unknown {
+  font-weight: 400;
+  opacity: 0.75;
+}

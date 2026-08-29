@@ -24,8 +24,8 @@ export class HttpSubmissionRepository extends SubmissionRepository {
   async create(graffiti: NewGraffiti, files: Blob[]): Promise<string> {
     const form = new FormData();
     form.append('category', graffiti.category);
-    // Omit artist_id when unset: the /artists list can be unavailable, and the
-    // server assigns the anonymous artist when it is absent.
+    // Omit artist_id when unset. Absence *is* unknown authorship: the server
+    // stores no artist for the piece. There is no anonymous artist to send.
     if (graffiti.artistId) form.append('artist_id', graffiti.artistId);
     form.append('latitude', String(graffiti.latitude));
     form.append('longitude', String(graffiti.longitude));
@@ -70,11 +70,12 @@ export class HttpSubmissionRepository extends SubmissionRepository {
     return id;
   }
 
+  /** First page of the catalogue, for the optional picker in the advanced form. */
   listArtists(): Promise<Artist[]> {
     return firstValueFrom(
       this.http
-        .get<ArtistDto[] | { data: ArtistDto[] }>(`${this.baseUrl}/v1/artists`)
-        .pipe(map((res) => (Array.isArray(res) ? res : res.data)))
+        .get<{ data: ArtistDto[] }>(`${this.baseUrl}/v1/artists`)
+        .pipe(map((res) => res.data.map((dto) => ({ id: dto.id, name: dto.name }))))
     );
   }
 }

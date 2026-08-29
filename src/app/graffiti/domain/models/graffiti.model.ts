@@ -1,3 +1,5 @@
+import { ArtistRef } from '../../../artists/domain/artist.model';
+
 export interface PhotoFiles {
   lg: string;
   md: string;
@@ -27,6 +29,12 @@ export interface GraffitiSighting {
 export interface Graffiti {
   id: string;
   category: string;
+  /**
+   * Who painted it, or `null` when authorship is unknown — the majority case in
+   * street art. `null` is the real answer, not a missing value: never render a
+   * placeholder artist for it.
+   */
+  artist: ArtistRef | null;
   latitude: number;
   longitude: number;
   vote: number;

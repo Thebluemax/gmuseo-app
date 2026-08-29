@@ -68,9 +68,9 @@ export class SubmitPage implements OnInit {
   readonly submitting = signal(false);
   readonly error = signal<string | null>(null);
 
-  // Artist is intentionally NOT required: the API's /artists list is currently
-  // unavailable, and the field is a silent default anyway. create() omits
-  // artist_id when none is chosen; the server assigns the anonymous artist.
+  // Artist is intentionally NOT required: most street art is anonymous, and
+  // create() omits artist_id when none is chosen, which is exactly how the API
+  // records unknown authorship.
   readonly canSubmit = computed(
     () =>
       this.photos().length > 0 &&
@@ -95,15 +95,19 @@ export class SubmitPage implements OnInit {
     this.categoryId = this.categoryService.categories()[0]?.id ?? '';
   }
 
+  /**
+   * The picker is optional and starts empty. Anonymous is the default because
+   * it is the majority case, and it means sending no artist at all — there is
+   * no anonymous account to look up any more, and picking the first artist in
+   * the list would attribute someone else's work by accident.
+   */
   private async loadArtists(): Promise<void> {
     try {
-      const artists = await this.submissionRepo.listArtists();
-      this.artists.set(artists);
-      // Default to the "Anonymous" artist for crowd submissions when present.
-      const anon = artists.find((a) => /anon/i.test(a.name));
-      this.artistId = anon?.id ?? artists[0]?.id ?? '';
+      this.artists.set(await this.submissionRepo.listArtists());
     } catch {
-      this.error.set('No se pudo cargar la lista de artistas.');
+      // A catalogue that will not load must not block an upload: the piece is
+      // simply filed as anonymous.
+      this.artists.set([]);
     }
   }
 
@@ -152,7 +156,7 @@ export class SubmitPage implements OnInit {
     try {
       await this.createGraffiti.execute({
         category: this.categoryId,
-        artistId: this.artistId,
+        artistId: this.artistId || undefined,
         coordinates,
         photos,
         state: this.state,

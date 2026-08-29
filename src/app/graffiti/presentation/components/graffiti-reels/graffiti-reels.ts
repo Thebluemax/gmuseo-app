@@ -1,6 +1,7 @@
 import {
   AfterViewInit, Component, ElementRef, OnDestroy, computed, input, signal, viewChild,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import type { Graffiti } from '../../../domain/models/graffiti.model';
 
 interface ReelImage {
@@ -20,6 +21,7 @@ function mockImages(seed: string): ReelImage[] {
   selector: 'gm-graffiti-reels',
   templateUrl: './graffiti-reels.html',
   styleUrls: ['./graffiti-reels.scss'],
+  imports: [RouterLink],
 })
 export class GraffitiReelsComponent implements AfterViewInit, OnDestroy {
   readonly graffitis = input.required<Graffiti[]>();
