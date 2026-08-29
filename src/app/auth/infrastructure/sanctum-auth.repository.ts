@@ -11,7 +11,7 @@ import {
   Wrapped,
 } from '../domain/auth.model';
 import { API_BASE_URL } from '../../shared/infrastructure/api.config';
-import { skipAuth } from './auth.http-context';
+import { skipAuth, skipRefresh } from './auth.http-context';
 
 // Confirmed routes (Laravel /api/v1). `Accept: application/json` is forced
 // globally by authInterceptor — without it the API 302-redirects instead of
@@ -36,10 +36,12 @@ export class SanctumAuthRepository extends AuthRepository {
   }
 
   logout(): Promise<void> {
-    // Bearer (access token) attached by the interceptor; skipAuth so a 401 here
-    // does not trigger a refresh attempt.
+    // Authenticated on purpose: the server needs the access token to know which
+    // account to revoke. skipRefresh (not skipAuth) so the Bearer header is
+    // attached while a 401 still does not trigger a refresh — renewing the
+    // session in order to end it would mint a fresh pair and revoke nothing.
     return firstValueFrom(
-      this.http.post<void>(`${this.baseUrl}${LOGOUT_PATH}`, {}, { context: skipAuth() })
+      this.http.post<void>(`${this.baseUrl}${LOGOUT_PATH}`, {}, { context: skipRefresh() })
     );
   }
 

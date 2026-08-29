@@ -14,4 +14,12 @@
   <ion-button expand="block" color="medium" (click)="logout()">
     Cerrar sesión
   </ion-button>
+  <!--
+    The scope is deliberate, so it has to be readable before the tap and without
+    opening anything: logging out revokes every token of the account. Without
+    this line, "my other device logged itself out" reads as a bug.
+  -->
+  <ion-note class="gm-logout-scope">
+    Se cerrará la sesión en todos tus dispositivos.
+  </ion-note>
 </ion-content>
