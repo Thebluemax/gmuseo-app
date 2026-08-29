@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Allow cleartext HTTP only to the LAN dev backend (MinIO media + local
+         API). Production is HTTPS-only. -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">192.168.0.154</domain>
+        <domain includeSubdomains="false">localhost</domain>
+    </domain-config>
+
+    <!-- Production API over HTTPS with a self-signed cert. Trust that specific
+         cert (pinned via @raw/gmuseo_selfsigned) in addition to the system CAs,
+         scoped to this domain only. Cleartext stays blocked here. -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="false">api.gmuseo.maximilianofernandez.net</domain>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="@raw/gmuseo_selfsigned" />
+        </trust-anchors>
+    </domain-config>
+</network-security-config>
