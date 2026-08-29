@@ -8,6 +8,32 @@ store — see [CLAUDE.md](CLAUDE.md#shared-contract).
 
 ## [Unreleased]
 
+### Fixed
+- Logging out revokes the session again — it had never revoked anything. The
+  request left without an `Authorization` header, the server answered 401, and
+  `AuthService.logout()` swallowed the error inside the `catch` that exists so a
+  dead network still clears the device. The user saw a perfectly normal logout
+  while the refresh token stayed valid on the server for another 30 days. Found
+  on a device: `POST /api/v1/auth/logout` answered 401 on every attempt while the
+  access token was still live in `personal_access_tokens`.
+
+  The cause was not the call but the flag it used. `SKIP_AUTH` meant two things
+  at once — "do not attach the token" and "do not refresh on a 401". Login,
+  register and refresh want both; logout wants only the second, and with a single
+  switch it had to pick the wrong one. Simply dropping the flag from logout would
+  have been worse than the bug: a 401 would then reach the refresh path and mint
+  a fresh token pair at the moment the user asked to have none. The flag is now
+  two — `SKIP_TOKEN` and `SKIP_REFRESH` — and logout sets only the latter
+
+### Changed
+- **Logging out now ends the session on every device of the account**, not just
+  the one you tapped it on. This is a decision, not a side effect: logging out is
+  the only control a user has when they lend their phone or think someone saw
+  their screen, and a per-device logout leaves open exactly what they meant to
+  close. Revoking too much is recoverable by signing in again; revoking too
+  little is not. The profile screen says so next to the button
+
+
 ### Added
 - `artists` bounded context: `Artist` / `ArtistRef` domain models,
   `ArtistRepository` and its HTTP implementation against the paginated
