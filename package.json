@@ -18,6 +18,10 @@
     "sync:lan": "GMUSEO_LAN=1 cap sync android",
     "android:lan": "npm run build:lan && npm run sync:lan"
   },
+  "engines": {
+    "node": "^24.0.0",
+    "npm": "^11.0.0"
+  },
   "private": true,
   "dependencies": {
     "@angular/animations": "^21.2.16",
