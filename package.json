@@ -1,7 +1,7 @@
 {
   "name": "gmuseo",
   "version": "0.0.3",
-  "author": "Maximiliano Fernández",
+  "author": "Maximiliano Fern\u00e1ndez",
   "homepage": "https://ionicframework.com/",
   "scripts": {
     "ng": "ng",
@@ -13,7 +13,8 @@
     "test:coverage": "ng test --code-coverage",
     "lint": "ng lint",
     "build:prod": "ng build --aot --configuration production",
-    "test:prod": "ng test --browsers=ChromeHeadless --watch=false --code-coverage"
+    "test:prod": "ng test --browsers=ChromeHeadless --watch=false --code-coverage",
+    "build:lan": "ng build --aot --configuration lan"
   },
   "private": true,
   "dependencies": {
