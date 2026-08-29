@@ -1,17 +1,16 @@
 # This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
 
-name: Build and Push Image to Registry from Commit {{ github.ref }}
+name: Build and Push Image
+
 on:
-  push:
-    branches:
-      - main
-      - release/*
       
-  workflow_dispatch: 
-     
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: 'Tags for build'
 env:
-  IMAGE_NAME: gmuseo-app
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   push:
@@ -27,24 +26,28 @@ jobs:
         run: docker build . --file Dockerfile --tag $IMAGE_NAME --label "runnumber=${GITHUB_RUN_ID}"
       - name: Log in to registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
-      - name: get the version from package.json
-        run: |
-          VERSION_NUM_TAG=$(grep -E '"version": "(.*)"' package.json | grep -E -o '[0-9].[0-9].[0-9]')
       - name: Push image
         run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
+          VERSION_NUM_TAG=$(grep -E '"version": "(.*)"' package.json | grep -E -o '[0-9].[0-9].[0-9]')
+          IMAGE_ID=$(echo "ghcr.io/$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')
+          VERSION_REF=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
 
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          echo IMAGE_ID=$IMAGE_ID >> $GITHUB_ENV
+          echo VERSION_NUM_TAG=$VERSION_NUM_TAG >> $GITHUB_ENV
+
+
 
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
 
-          [ "$VERSION" == "main" ] && NAMED_VERSION=latest
-          [ "$VERSION" == "development" ] && VERSION=$(${VERSION_NUM_TAG}-dev)
-          echo IMAGE_ID=$IMAGE_ID:$VERSION_NUM_TAG
-          echo VERSION=$VERSION
+          [ "$VERSION_REF" == "main" ] && NAME_VERSION=latest
+          [ "$VERSION_REF" != "main" ] && NAME_VERSION=${VERSION_NUM_TAG}-${VERSION_REF}
+
+          echo NAME_VERSION=$NAME_VERSION >> $GITHUB_ENV
+
       - name: Tag and push image
         run: |
-          docker tag $IMAGE_NAME $IMAGE_ID:$VERSION_NUM_TAG
-          docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION_NUM_TAG
-          docker push $IMAGE_ID:$VERSION
+          echo $IMAGE_ID:$VERSION_NUM_TAG "--" $IMAGE_ID:$NAME_VERSION
+          [ "$VERSION_NAME" == "latest" ] && docker tag $IMAGE_NAME $IMAGE_ID:$VERSION_NUM_TAG
+          docker tag $IMAGE_NAME $IMAGE_ID:$NAME_VERSION
+           [ "$VERSION_NAME" == "latest" ] && docker push $IMAGE_ID:$VERSION_NUM_TAG
+          docker push $IMAGE_ID:$NAME_VERSION

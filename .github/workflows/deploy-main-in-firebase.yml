@@ -1,9 +1,10 @@
 name: Firebase Deploy Main
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: 'Tags for build'
 
 jobs:
   deploy:

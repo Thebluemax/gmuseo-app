@@ -1,12 +1,14 @@
 # This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
 
-name: CI Code Quality and Unit Test
+name: Code Quality and Unit Test with Coverage
 
 on:
-  push:
+  pull_request:
     branches:
-      - '**'
+      - main
+      - release/*
+      - develop
 
 jobs:
   code-quality:
@@ -14,8 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [24.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+        node-version: [20.x]
 
     steps:
     - uses: actions/checkout@v3
@@ -26,6 +27,8 @@ jobs:
         cache: 'npm'
     - name: Install dependencies
       run: npm ci
+    - name: install angular cli
+      run: npm install -g @angular/cli@18
     - run: npm run lint
 
   unit-test:
@@ -33,7 +36,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [24.x]
+        node-version: [20.x]
+    needs: code-quality
     
     steps:
     - uses: actions/checkout@v3
@@ -44,5 +48,11 @@ jobs:
         cache: 'npm'
     - name: Install dependencies
       run: npm ci
+    - name: install angular cli
+      run: npm install -g @angular/cli@18
     - run: npm run test:prod
+    - name: Update Coverage Badge
+      if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+      uses: we-cli/coverage-badge-action@main
+
 
