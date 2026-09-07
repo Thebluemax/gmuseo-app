@@ -200,7 +200,14 @@ Camera and geolocation are **core domain features** (submission flow). Haptics/k
 
 ## Deployment
 
-- **Web/PWA**: `firebase deploy` — serves `www/`, SPA rewrites all paths to `index.html`
+- **Web/PWA**: none. The Firebase Hosting project was a trial and its two
+  workflows were removed, along with `firebase.json` and `.firebaserc`, so that
+  nothing publishes a web client by accident. The API server publishes no web
+  front either — it answers only under `/api`. Bringing a web client back is a
+  decision, not a `firebase deploy`.
 - **Native**: `npx cap sync && npx cap open ios|android` after `npm run build:prod`
 - **Docker**: multi-stage build, copies `www/` into nginx:alpine
-- **Environment**: `src/environments/environment.ts` (dev) / `environment.prod.ts` (prod), currently only `appName` differs
+- **Environment**: `src/environments/environment.ts` (dev) / `environment.prod.ts` (prod).
+  They differ in `apiUrl` and `mediaUrl`, not only `appName`: dev goes through the
+  ng-serve proxy with a relative `/api`, prod calls
+  `https://gmuseo.maximilianofernandez.net/api` directly.
