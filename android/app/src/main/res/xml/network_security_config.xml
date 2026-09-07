@@ -7,14 +7,12 @@
         <domain includeSubdomains="false">localhost</domain>
     </domain-config>
 
-    <!-- Production API over HTTPS with a self-signed cert. Trust that specific
-         cert (pinned via @raw/gmuseo_selfsigned) in addition to the system CAs,
-         scoped to this domain only. Cleartext stays blocked here. -->
-    <domain-config cleartextTrafficPermitted="false">
-        <domain includeSubdomains="false">api.gmuseo.maximilianofernandez.net</domain>
-        <trust-anchors>
-            <certificates src="system" />
-            <certificates src="@raw/gmuseo_selfsigned" />
-        </trust-anchors>
-    </domain-config>
+    <!-- Production deliberately has no entry here. It is served from
+         gmuseo.maximilianofernandez.net with a Let's Encrypt certificate, which
+         the system CAs already validate, and the platform default blocks
+         cleartext regardless. The block that used to sit here named
+         api.gmuseo.maximilianofernandez.net — the Kubernetes ingress, now off —
+         and added @raw/gmuseo_selfsigned as a trust anchor for it. An extra
+         trust anchor only ever widens what the app accepts, so it went with the
+         host it was for. -->
 </network-security-config>

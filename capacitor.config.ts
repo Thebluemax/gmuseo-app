@@ -5,11 +5,11 @@ const config: CapacitorConfig = {
   appName: 'gmuseo',
   webDir: 'www',
   server: {
-    // Serve the app from https://localhost. Prod API + media are HTTPS
-    // (api.gmuseo.maximilianofernandez.net, self-signed cert trusted via
-    // res/xml/network_security_config.xml), so same-scheme, no mixed content.
-    // https by default: production API and media are HTTPS, so page and assets
-    // share a scheme and nothing is mixed content.
+    // Serve the app from https://localhost. The production API
+    // (gmuseo.maximilianofernandez.net) and the media bucket are both HTTPS
+    // with certificates the system CAs validate, so page and assets share a
+    // scheme and nothing is mixed content. No entry in
+    // res/xml/network_security_config.xml is needed for them.
     //
     // GMUSEO_LAN=1 drops the page to http for LAN development only, where MinIO
     // serves media over plain http from the developer's machine. Serving the
