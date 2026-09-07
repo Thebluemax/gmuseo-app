@@ -8,6 +8,25 @@ store — see [CLAUDE.md](CLAUDE.md#shared-contract).
 
 ## [Unreleased]
 
+### Added
+- Coverage for the session flow, which had none: `auth.service.spec.ts` and
+  `token-storage.spec.ts` are new, and `auth.interceptor.spec.ts` grew the cases
+  it was missing. Between them they pin the parts that are easy to break without
+  noticing — the rotated refresh token is the one that gets stored, three
+  requests expiring together spend a single refresh, a 403 tears the session down
+  without renewing, logging out clears the device even when the server call
+  fails, and no token ever reaches `localStorage`, `sessionStorage` or cookies
+
+  One test is deliberately **pending** rather than passing or deleted: the client
+  is specified to log out when a request retried after a refresh is rejected
+  again, and it does not. `handle401` calls `next(retried)` from inside the
+  observable the outer `catchError` returns, and RxJS does not route those errors
+  back into that `catchError`, so the `RETRIED` branch is unreachable. The loop
+  is still broken — no second refresh, and the error reaches the caller — but the
+  dead session stays in place while every request answers 401. Recorded, not
+  fixed: this work adds coverage, it does not change behaviour
+
+
 ### Fixed
 - Logging out revokes the session again — it had never revoked anything. The
   request left without an `Authorization` header, the server answered 401, and
