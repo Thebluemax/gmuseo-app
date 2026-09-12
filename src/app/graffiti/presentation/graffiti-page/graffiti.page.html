@@ -14,17 +14,29 @@
     }
   </div>
 
-  @if (loading()) {
+  <!-- Pages accumulate: once anything is on screen the reels stay, and a
+       page still loading or a page that failed shows on top of them instead of
+       replacing what the person already scrolled through. -->
+  @if (feed.items().length > 0) {
+    <gm-graffiti-reels [graffitis]="feed.items()" (reachedEnd)="onReachedEnd()" />
+    @if (feed.error(); as message) {
+      <div class="reels-notice" role="alert">
+        <span class="reels-notice__message">{{ message }}</span>
+        <ion-button size="small" fill="outline" color="light" (click)="onRetry()">Reintentar</ion-button>
+      </div>
+    }
+  } @else if (feed.loading()) {
     <div class="reels-center">
       <ion-spinner name="crescent" />
     </div>
-  } @else if (graffitis().length > 0) {
-    <gm-graffiti-reels [graffitis]="graffitis()" />
   } @else {
     <div class="reels-placeholder">
       <img class="reels-placeholder__img" src="assets/placeholder.svg" alt="" />
       <div class="reels-placeholder__message">
-        {{ error() ?? 'No hay graffitis disponibles.' }}
+        <span>{{ feed.error() ?? 'No hay graffitis disponibles.' }}</span>
+        @if (feed.error()) {
+          <ion-button fill="outline" color="light" (click)="onRetry()">Reintentar</ion-button>
+        }
       </div>
     </div>
   }

@@ -40,13 +40,8 @@ export class HttpCategoryRepository extends CategoryRepository {
 
 /**
  * Grid cells are small, so the `sm` variant is the right one. `cover` is the
- * `md` variant and only stands in when a graffiti carries no sighting photos.
+ * `md` variant and only stands in when a graffiti carries no photos.
  */
 function gridPhoto(graffiti: Graffiti): string | null {
-  for (const sighting of graffiti.sightings) {
-    const photo = sighting.photos[0];
-    if (photo) return photo.files.sm;
-  }
-
-  return graffiti.cover || null;
+  return graffiti.photos[0]?.files.sm ?? (graffiti.cover || null);
 }

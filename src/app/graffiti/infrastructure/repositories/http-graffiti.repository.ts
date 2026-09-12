@@ -2,11 +2,13 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom, map } from 'rxjs';
 import { GraffitiRepository } from '../../domain/repositories/graffiti.repository';
-import { Graffiti } from '../../domain/models/graffiti.model';
+import { Graffiti, GraffitiDetail } from '../../domain/models/graffiti.model';
 import { GraffitiFilters } from '../../domain/models/graffiti-filters.model';
 import { PaginatedResponse } from '../../../shared/domain/pagination.model';
 import { API_BASE_URL } from '../../../shared/infrastructure/api.config';
-import { GraffitiDto, toGraffiti } from '../adapters/graffiti-api.adapter';
+import {
+  GraffitiDetailDto, GraffitiDto, toGraffiti, toGraffitiDetail,
+} from '../adapters/graffiti-api.adapter';
 
 @Injectable()
 export class HttpGraffitiRepository extends GraffitiRepository {
@@ -24,11 +26,11 @@ export class HttpGraffitiRepository extends GraffitiRepository {
     );
   }
 
-  getById(id: string): Promise<Graffiti> {
+  getById(id: string): Promise<GraffitiDetail> {
     return firstValueFrom(
       this.http
-        .get<GraffitiDto>(`${this.graffitiUrl}/${id}`)
-        .pipe(map(toGraffiti))
+        .get<GraffitiDetailDto>(`${this.graffitiUrl}/${id}`)
+        .pipe(map(toGraffitiDetail))
     );
   }
 }
@@ -39,7 +41,6 @@ function toParams(filters: GraffitiFilters): Record<string, string> {
   if (filters.perPage != null) params['per_page'] = String(filters.perPage);
   if (filters.category) params['category'] = filters.category;
   if (filters.artist) params['artist'] = filters.artist;
-  if (filters.q) params['q'] = filters.q;
   if (filters.sort) params['sort'] = filters.sort;
   return params;
 }

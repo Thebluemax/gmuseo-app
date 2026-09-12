@@ -7,7 +7,7 @@ import { ArtistRepository, ArtistListFilters } from '../../domain/artist.reposit
 import { Artist } from '../../domain/artist.model';
 import { GraffitiRepository } from '../../../graffiti/domain/repositories/graffiti.repository';
 import { GraffitiFilters } from '../../../graffiti/domain/models/graffiti-filters.model';
-import { Graffiti } from '../../../graffiti/domain/models/graffiti.model';
+import { Graffiti, GraffitiDetail } from '../../../graffiti/domain/models/graffiti.model';
 import { PaginatedResponse } from '../../../shared/domain/pagination.model';
 
 const ARTIST_ID = 'a20c46cf-2c90-4a40-b83b-d5fa7755a33e';
@@ -28,10 +28,12 @@ function graffiti(id: string): Graffiti {
     artist: { id: ARTIST_ID, name: 'Artur Artist' },
     latitude: 0,
     longitude: 0,
+    createdAt: null,
     vote: 0,
     active: true,
     cover: '',
-    sightings: [],
+    photos: [],
+    photosCount: 0,
   };
 }
 
@@ -66,8 +68,8 @@ class StubGraffitiRepository extends GraffitiRepository {
     return Promise.resolve(page(this.result));
   }
 
-  getById(id: string): Promise<Graffiti> {
-    return Promise.resolve(graffiti(id));
+  getById(id: string): Promise<GraffitiDetail> {
+    return Promise.resolve({ ...graffiti(id), sightings: [] });
   }
 }
 

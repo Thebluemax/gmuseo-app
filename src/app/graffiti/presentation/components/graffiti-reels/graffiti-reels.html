@@ -1,9 +1,12 @@
 <div class="reels" #stage>
   @if (currentImage(); as img) {
-    <span>{{img.url}}</span>
     <img class="reels__img" [src]="img.url" alt="Graffiti" />
   } @else {
-    <div class="reels__img reels__img--empty"></div>
+    <!-- No photo yet. The artwork still takes its full slot so the vertical
+         run does not skip or collapse; the marker says why it is dark. -->
+    <div class="reels__img reels__img--empty">
+      <span class="reels__empty-label">Sin foto todavía</span>
+    </div>
   }
 
   @if (current(); as graffiti) {
@@ -15,16 +18,25 @@
              a gap: it is stated plainly and links nowhere. -->
         <span class="reels__artist reels__artist--unknown">Autor desconocido</span>
       }
+      <!-- No title, no name: an artwork identifies itself by where it is and
+           when it entered the collection. A missing date is omitted, never
+           faked. -->
+      <div class="reels__meta">
+        <span class="reels__coords">
+          {{ graffiti.latitude | number: '1.5-5' }}, {{ graffiti.longitude | number: '1.5-5' }}
+        </span>
+        @if (graffiti.createdAt) {
+          <span class="reels__date">{{ graffiti.createdAt | date: 'd MMM y' }}</span>
+        }
+      </div>
     </div>
   }
 
-  @if (images().length > 1) {
+  @if (dots().length > 1) {
     <div class="reels__dots">
-      @for (img of images(); track img.id; let i = $index) {
-        <span class="reels__dot" [class.reels__dot--active]="i === imageIndex()"></span>
-
+      @for (dot of dots(); track dot) {
+        <span class="reels__dot" [class.reels__dot--active]="dot === imageIndex()"></span>
       }
     </div>
   }
-
 </div>

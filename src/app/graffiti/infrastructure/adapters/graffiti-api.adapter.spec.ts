@@ -1,6 +1,22 @@
 import { environment } from 'src/environments/environment';
-import { GraffitiDto, toGraffiti } from './graffiti-api.adapter';
+import {
+  GraffitiDetailDto, GraffitiDto, GraffitiPhotoDto, toGraffiti, toGraffitiDetail,
+} from './graffiti-api.adapter';
 
+function photo(id: string, stem: string): GraffitiPhotoDto {
+  return {
+    id,
+    files: {
+      lg: `/gmuseo/graffitis/${stem}_1900.jpg`,
+      md: `/gmuseo/graffitis/${stem}_700.jpg`,
+      sm: `/gmuseo/graffitis/${stem}_350.jpg`,
+      thumb: `/gmuseo/graffitis/${stem}_150.jpg`,
+    },
+    created_at: '2026-05-17T07:03:35.000000Z',
+  };
+}
+
+/** A listing element, as GET /graffitis returns it. */
 function dto(overrides: Partial<GraffitiDto> = {}): GraffitiDto {
   return {
     id: 'a20c46cf-836b-42d8-9a96-67189aa8490f',
@@ -8,9 +24,23 @@ function dto(overrides: Partial<GraffitiDto> = {}): GraffitiDto {
     artist: { id: 'a20c46cf-2c90-4a40-b83b-d5fa7755a33e', name: 'Artur Artist' },
     latitude: -5.625272,
     longitude: 65.357251,
+    created_at: '2026-05-17T07:03:35.000000Z',
     vote: 1,
     active: true,
     cover: '/gmuseo/graffitis/cover_700.jpg',
+    photos: [
+      photo('a20c46cf-9670-4025-82f4-80e63c4accc8', 'photo'),
+      photo('a20c46cf-9671-4025-82f4-80e63c4accc9', 'older'),
+    ],
+    photos_count: 2,
+    ...overrides,
+  };
+}
+
+/** The same artwork read on its own, with its sightings. */
+function detailDto(overrides: Partial<GraffitiDetailDto> = {}): GraffitiDetailDto {
+  return {
+    ...dto(),
     sightings: [
       {
         id: 'a20c46cf-9586-4703-aa52-fda662272d2e',
@@ -20,15 +50,8 @@ function dto(overrides: Partial<GraffitiDto> = {}): GraffitiDto {
         description: 'Qui fuga illum dolore nihil.',
         photos: [
           {
-            id: 'a20c46cf-9670-4025-82f4-80e63c4accc8',
-            files: {
-              lg: '/gmuseo/graffitis/photo_1900.jpg',
-              md: '/gmuseo/graffitis/photo_700.jpg',
-              sm: '/gmuseo/graffitis/photo_350.jpg',
-              thumb: '/gmuseo/graffitis/photo_150.jpg',
-            },
+            ...photo('a20c46cf-9670-4025-82f4-80e63c4accc8', 'photo'),
             owner: 'Artur Artist',
-            created_at: '2026-05-17T07:03:35.000000Z',
             updated_at: '2026-05-17T07:03:35.000000Z',
           },
         ],
@@ -46,8 +69,8 @@ describe('toGraffiti', () => {
     expect(graffiti.category).toBe('a20c46cf-596c-4481-a214-ec3f025b83a8');
     expect(graffiti.latitude).toBe(-5.625272);
     expect(graffiti.longitude).toBe(65.357251);
+    expect(graffiti.createdAt).toBe('2026-05-17T07:03:35.000000Z');
     expect(graffiti.vote).toBe(1);
-    expect(graffiti.sightings.length).toBe(1);
   });
 
   /**
@@ -55,8 +78,11 @@ describe('toGraffiti', () => {
    * `title`, `description` and `slug` were dropped from `graffitis`; free text
    * belongs to the sighting. Reintroducing any of them on the client is a
    * contract deviation, so the mapped shape is asserted field by field.
+   *
+   * No `sightings` either: a listing element does not carry them, and the type
+   * says so instead of leaving an empty array that could mean "not loaded".
    */
-  it('exposes no title, name or slug on the graffiti', () => {
+  it('exposes the flattened listing shape and nothing else', () => {
     const graffiti = toGraffiti(dto());
 
     expect(Object.keys(graffiti).sort()).toEqual([
@@ -64,10 +90,12 @@ describe('toGraffiti', () => {
       'artist',
       'category',
       'cover',
+      'createdAt',
       'id',
       'latitude',
       'longitude',
-      'sightings',
+      'photos',
+      'photosCount',
       'vote',
     ]);
   });
@@ -82,28 +110,83 @@ describe('toGraffiti', () => {
     expect('slug' in graffiti).toBe(false);
   });
 
-  it('keeps free text on the sighting, not on the graffiti', () => {
-    const graffiti = toGraffiti(dto());
-
-    expect(graffiti.sightings[0].description).toBe('Qui fuga illum dolore nihil.');
-    expect('description' in graffiti).toBe(false);
-  });
-
   it('treats identifiers as opaque strings', () => {
     const graffiti = toGraffiti(dto());
 
     expect(typeof graffiti.id).toBe('string');
     expect(typeof graffiti.category).toBe('string');
-    expect(typeof graffiti.sightings[0].id).toBe('string');
+    expect(typeof graffiti.photos[0].id).toBe('string');
   });
 
-  it('re-roots every photo variant on the configured media host', () => {
-    const { files } = toGraffiti(dto()).sightings[0].photos[0];
+  describe('photos', () => {
+    it('keeps every photo in the order the API gives, with the count the API gives', () => {
+      const graffiti = toGraffiti(dto());
 
-    expect(files.lg).toBe(`${environment.mediaUrl}/gmuseo/graffitis/photo_1900.jpg`);
-    expect(files.md).toBe(`${environment.mediaUrl}/gmuseo/graffitis/photo_700.jpg`);
-    expect(files.sm).toBe(`${environment.mediaUrl}/gmuseo/graffitis/photo_350.jpg`);
-    expect(files.thumb).toBe(`${environment.mediaUrl}/gmuseo/graffitis/photo_150.jpg`);
+      expect(graffiti.photos.map((p) => p.id)).toEqual([
+        'a20c46cf-9670-4025-82f4-80e63c4accc8',
+        'a20c46cf-9671-4025-82f4-80e63c4accc9',
+      ]);
+      expect(graffiti.photosCount).toBe(2);
+    });
+
+    /**
+     * The dots are drawn from `photos_count`, so the number must be carried as
+     * the API states it and never recomputed here — if the two ever disagree,
+     * that is the API's bug to surface, not the client's to hide.
+     */
+    it('carries photos_count through without deriving it from photos', () => {
+      const graffiti = toGraffiti(dto({ photos_count: 7 }));
+
+      expect(graffiti.photosCount).toBe(7);
+      expect(graffiti.photos.length).toBe(2);
+    });
+
+    it('re-roots every photo variant on the configured media host', () => {
+      const { files } = toGraffiti(dto()).photos[0];
+
+      expect(files.lg).toBe(`${environment.mediaUrl}/gmuseo/graffitis/photo_1900.jpg`);
+      expect(files.md).toBe(`${environment.mediaUrl}/gmuseo/graffitis/photo_700.jpg`);
+      expect(files.sm).toBe(`${environment.mediaUrl}/gmuseo/graffitis/photo_350.jpg`);
+      expect(files.thumb).toBe(`${environment.mediaUrl}/gmuseo/graffitis/photo_150.jpg`);
+    });
+
+    it('survives an artwork with no photos', () => {
+      const graffiti = toGraffiti(dto({ photos: [], photos_count: 0 }));
+
+      expect(graffiti.photos).toEqual([]);
+      expect(graffiti.photosCount).toBe(0);
+    });
+
+    /** The listing is public: a photo on it names nobody, whatever the payload says. */
+    it('carries no uploader on a listing photo', () => {
+      const rogue = { ...dto(), photos: [{ ...photo('x', 'x'), owner: 'Artur Artist' }] };
+
+      const { photos } = toGraffiti(rogue as GraffitiDto);
+
+      expect(Object.keys(photos[0]).sort()).toEqual(['createdAt', 'files', 'id']);
+    });
+  });
+
+  describe('createdAt', () => {
+    /**
+     * A legacy artwork may have no date. That is `null`, one value the screen
+     * branches on — never `undefined`, never an empty string that would render
+     * as a blank where a date should be.
+     */
+    it('resolves an absent created_at to null, never undefined or empty', () => {
+      const withoutDate = { ...dto() } as Partial<GraffitiDto>;
+      delete withoutDate.created_at;
+
+      const graffiti = toGraffiti(withoutDate as GraffitiDto);
+
+      expect(graffiti.createdAt).toBeNull();
+      expect(graffiti.createdAt).not.toBeUndefined();
+      expect(graffiti.createdAt).not.toBe('');
+    });
+
+    it('keeps an explicit null as null', () => {
+      expect(toGraffiti(dto({ created_at: null })).createdAt).toBeNull();
+    });
   });
 
   it('re-roots an absolute URL pointing at the legacy bucket host', () => {
@@ -162,10 +245,25 @@ describe('toGraffiti', () => {
       expect(Object.keys(artist ?? {}).sort()).toEqual(['id', 'name']);
     });
   });
+});
+
+describe('toGraffitiDetail', () => {
+  it('is the listing element plus its sightings', () => {
+    const detail = toGraffitiDetail(detailDto());
+
+    expect(detail.photosCount).toBe(2);
+    expect(detail.sightings.length).toBe(1);
+    expect(detail.sightings[0].photos[0].owner).toBe('Artur Artist');
+  });
+
+  it('keeps free text on the sighting, not on the graffiti', () => {
+    const detail = toGraffitiDetail(detailDto());
+
+    expect(detail.sightings[0].description).toBe('Qui fuga illum dolore nihil.');
+    expect('description' in detail).toBe(false);
+  });
 
   it('survives a graffiti with no sightings', () => {
-    const graffiti = toGraffiti(dto({ sightings: [] }));
-
-    expect(graffiti.sightings).toEqual([]);
+    expect(toGraffitiDetail(detailDto({ sightings: [] })).sightings).toEqual([]);
   });
 });

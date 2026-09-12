@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
   IonButton, IonIcon, IonContent, IonSpinner, IonFab, IonFabButton,
@@ -6,11 +6,10 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { personCircleOutline, logInOutline, addOutline } from 'ionicons/icons';
-import { LoadGraffitiListUseCase } from '../../application/usecases/load-graffiti-list.usecase';
+import { GraffitiFeedService } from '../../application/services/graffiti-feed.service';
 import { AuthService } from '../../../auth/application/auth.service';
 import { LoginModalComponent } from '../../../auth/presentation/login-modal/login-modal.component';
 import { GraffitiReelsComponent } from '../components/graffiti-reels/graffiti-reels';
-import type { Graffiti } from '../../domain/models/graffiti.model';
 import { environment } from 'src/environments/environment';
 
 @Component({
@@ -24,9 +23,9 @@ import { environment } from 'src/environments/environment';
   ],
 })
 export class GraffitiPage implements OnInit {
-  private loadListUseCase = inject(LoadGraffitiListUseCase);
   private modalCtrl = inject(ModalController);
   readonly authService = inject(AuthService);
+  readonly feed = inject(GraffitiFeedService);
 
   readonly appName = environment.appName;
 
@@ -34,12 +33,16 @@ export class GraffitiPage implements OnInit {
     addIcons({ personCircleOutline, logInOutline, addOutline });
   }
 
-  readonly graffitis = signal<Graffiti[]>([]);
-  readonly loading = signal(false);
-  readonly error = signal<string | null>(null);
-
   ngOnInit(): void {
-    this.fetchLatest();
+    void this.feed.loadFirst();
+  }
+
+  onReachedEnd(): void {
+    void this.feed.loadNext();
+  }
+
+  onRetry(): void {
+    void this.feed.retry();
   }
 
   async onAppNameClick(): Promise<void> {
@@ -52,18 +55,5 @@ export class GraffitiPage implements OnInit {
       backdropDismiss: true,
     });
     await modal.present();
-  }
-
-  private async fetchLatest(): Promise<void> {
-    this.loading.set(true);
-    this.error.set(null);
-    try {
-      const res = await this.loadListUseCase.execute({ sort: 'latest', perPage: 4 });
-      this.graffitis.set(res.data);
-    } catch {
-      this.error.set('No se pudo cargar los graffitis.');
-    } finally {
-      this.loading.set(false);
-    }
   }
 }
