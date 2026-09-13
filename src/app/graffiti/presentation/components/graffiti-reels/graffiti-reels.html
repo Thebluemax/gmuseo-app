@@ -1,7 +1,21 @@
 <div class="reels" #stage>
-  @if (currentImage(); as img) {
-    <img class="reels__img" [src]="img.url" alt="Graffiti" />
-  } @else {
+  @for (img of currentImages(); track img.id) {
+    @if (currentState() === 'error') {
+      <!-- A photo that will not come is said so in its own slot. The dots and
+           both gestures stay live: one broken photo blocks nothing. -->
+      <div class="reels__img reels__img--error">
+        <span class="reels__empty-label">No se pudo cargar la foto</span>
+      </div>
+    } @else {
+      <img class="reels__img" [src]="img.url" alt="Graffiti"
+           (load)="markReady(img.url)" (error)="markError(img.url)" />
+      @if (currentState() !== 'ready') {
+        <div class="reels__loading" aria-label="Cargando foto">
+          <ion-spinner name="crescent" />
+        </div>
+      }
+    }
+  } @empty {
     <!-- No photo yet. The artwork still takes its full slot so the vertical
          run does not skip or collapse; the marker says why it is dark. -->
     <div class="reels__img reels__img--empty">

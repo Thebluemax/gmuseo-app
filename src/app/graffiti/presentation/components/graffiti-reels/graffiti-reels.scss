@@ -23,11 +23,28 @@
   object-fit: cover;
   transition: opacity 0.2s ease;
 
-  &--empty {
+  &--empty,
+  &--error {
     background: linear-gradient(135deg, #2a2a2a, #111);
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+}
+
+// Covers the slot while the photo downloads: a fresh `<img>` is transparent
+// until then, and black behind it would read as "nothing here".
+.reels__loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #2a2a2a, #111);
+  z-index: 1;
+
+  ion-spinner {
+    --color: rgba(255, 255, 255, 0.7);
   }
 }
 

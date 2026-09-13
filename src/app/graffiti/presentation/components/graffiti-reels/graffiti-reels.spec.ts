@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
-import { GraffitiReelsComponent } from './graffiti-reels';
+import { GraffitiReelsComponent, PRELOAD_IMAGE, PreloadImage } from './graffiti-reels';
 import { Graffiti, GraffitiPhoto } from '../../../domain/models/graffiti.model';
 
 function photo(n: number): GraffitiPhoto {
@@ -36,14 +36,26 @@ function graffiti(overrides: Partial<Graffiti> = {}): Graffiti {
   };
 }
 
+/** A preload that never touches the network: the test fires `onload`/`onerror` itself. */
+class FakeImage implements PreloadImage {
+  src = '';
+  onload: ((ev: Event) => void) | null = null;
+  onerror: ((ev: Event | string) => void) | null = null;
+}
+
 describe('GraffitiReelsComponent', () => {
   let fixture: ComponentFixture<GraffitiReelsComponent>;
   let el: HTMLElement;
+  let preloads: FakeImage[];
 
   async function render(input: Graffiti[]): Promise<void> {
+    preloads = [];
     await TestBed.configureTestingModule({
       imports: [GraffitiReelsComponent],
-      providers: [provideRouter([])],
+      providers: [
+        provideRouter([]),
+        { provide: PRELOAD_IMAGE, useValue: () => { const img = new FakeImage(); preloads.push(img); return img; } },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(GraffitiReelsComponent);
@@ -65,6 +77,31 @@ describe('GraffitiReelsComponent', () => {
 
   function shownImage(): string | null {
     return el.querySelector('img.reels__img')?.getAttribute('src') ?? null;
+  }
+
+  function shownImageElement(): HTMLImageElement | null {
+    return el.querySelector('img.reels__img');
+  }
+
+  function loadingOverlay(): Element | null {
+    return el.querySelector('.reels__loading');
+  }
+
+  async function shownImageLoads(): Promise<void> {
+    shownImageElement()?.dispatchEvent(new Event('load'));
+    await fixture.whenStable();
+  }
+
+  async function shownImageFails(): Promise<void> {
+    shownImageElement()?.dispatchEvent(new Event('error'));
+    await fixture.whenStable();
+  }
+
+  async function preloadFinishes(url: string): Promise<void> {
+    const image = preloads.find((p) => p.src === url);
+    if (!image) throw new Error(`no preload asked for ${url}`);
+    image.onload?.(new Event('load'));
+    await fixture.whenStable();
   }
 
   describe('authorship', () => {
@@ -96,7 +133,18 @@ describe('GraffitiReelsComponent', () => {
     it('shows the first photo of the artwork, from the flattened list', async () => {
       await render([graffiti()]);
 
-      expect(shownImage()).toBe('http://media.test/p1_1900.jpg');
+      expect(shownImage()).toBe('http://media.test/p1_700.jpg');
+    });
+
+    /**
+     * `md` is the feed's variant: 1:1 at phone width and a fifth of the weight
+     * of `lg`. Nothing in the DOM may point at the large one.
+     */
+    it('loads the md variant and never the lg one', async () => {
+      await render([graffiti()]);
+
+      expect(shownImage()).toContain('_700.jpg');
+      expect(el.innerHTML).not.toContain('_1900.jpg');
     });
 
     /** The dots come from `photosCount`, one per photo the API counts. */
@@ -143,7 +191,7 @@ describe('GraffitiReelsComponent', () => {
 
       expect(fixture.componentInstance.index()).toBe(0);
       expect(fixture.componentInstance.imageIndex()).toBe(1);
-      expect(shownImage()).toBe('http://media.test/p2_1900.jpg');
+      expect(shownImage()).toBe('http://media.test/p2_700.jpg');
       expect(dots()[1].classList).toContain('reels__dot--active');
     });
 
@@ -155,7 +203,7 @@ describe('GraffitiReelsComponent', () => {
 
       expect(fixture.componentInstance.index()).toBe(1);
       expect(fixture.componentInstance.imageIndex()).toBe(0);
-      expect(shownImage()).toBe('http://media.test/p7_1900.jpg');
+      expect(shownImage()).toBe('http://media.test/p7_700.jpg');
     });
 
     it('does not change anything on a horizontal swipe over a single photo', async () => {
@@ -164,7 +212,7 @@ describe('GraffitiReelsComponent', () => {
       await swipe(-120, 0);
 
       expect(fixture.componentInstance.imageIndex()).toBe(0);
-      expect(shownImage()).toBe('http://media.test/p1_1900.jpg');
+      expect(shownImage()).toBe('http://media.test/p1_700.jpg');
     });
 
     it('stops at the ends instead of wrapping', async () => {
@@ -175,6 +223,104 @@ describe('GraffitiReelsComponent', () => {
 
       await swipe(120, 0);
       expect(fixture.componentInstance.imageIndex()).toBe(0);
+    });
+  });
+
+  describe('loading state', () => {
+    const first = graffiti();
+    const second = graffiti({
+      id: 'a20c46cf-8a12-4a70-9ad1-2f0f6d9c1a53',
+      photos: [photo(7), photo(8)],
+      photosCount: 2,
+    });
+
+    it('covers the slot until the photo on screen has loaded', async () => {
+      await render([first]);
+      expect(loadingOverlay()).not.toBeNull();
+
+      await shownImageLoads();
+
+      expect(loadingOverlay()).toBeNull();
+    });
+
+    /**
+     * A bound `src` would keep the old bitmap on screen while the next photo
+     * downloads, which reads as "the swipe did nothing". The element is
+     * replaced on the spot, the dot moves on the spot, and the slot shows it
+     * is loading.
+     */
+    it('replaces the img element and moves the dot before the next photo has loaded', async () => {
+      await render([first]);
+      await shownImageLoads();
+      const before = shownImageElement();
+
+      await swipe(-120, 0);
+
+      expect(shownImageElement()).not.toBe(before);
+      expect(shownImage()).toBe('http://media.test/p2_700.jpg');
+      expect(dots()[1].classList).toContain('reels__dot--active');
+      expect(loadingOverlay()).not.toBeNull();
+
+      await shownImageLoads();
+      expect(loadingOverlay()).toBeNull();
+    });
+
+    it('preloads the next and previous photo and the first photo of the next artwork', async () => {
+      await render([first, second]);
+
+      expect(preloads.map((p) => p.src)).toEqual([
+        'http://media.test/p2_700.jpg',
+        'http://media.test/p7_700.jpg',
+      ]);
+
+      await shownImageLoads();
+      await swipe(-120, 0);
+
+      // p1 is already known (it loaded on screen), so only p3 is new.
+      expect(preloads.map((p) => p.src)).toEqual([
+        'http://media.test/p2_700.jpg',
+        'http://media.test/p7_700.jpg',
+        'http://media.test/p3_700.jpg',
+      ]);
+    });
+
+    it('shows a preloaded photo without passing through the loading state', async () => {
+      await render([first, second]);
+      await preloadFinishes('http://media.test/p2_700.jpg');
+
+      await swipe(-120, 0);
+
+      expect(shownImage()).toBe('http://media.test/p2_700.jpg');
+      expect(loadingOverlay()).toBeNull();
+    });
+
+    it('lands on the next artwork without loading when its first photo was preloaded', async () => {
+      await render([first, second]);
+      await preloadFinishes('http://media.test/p7_700.jpg');
+
+      await swipe(0, -120);
+
+      expect(shownImage()).toBe('http://media.test/p7_700.jpg');
+      expect(loadingOverlay()).toBeNull();
+    });
+
+    /** One broken photo is said so in its slot and blocks neither gesture. */
+    it('says a photo could not load and keeps both gestures working', async () => {
+      await render([first, second]);
+
+      await shownImageFails();
+
+      expect(shownImageElement()).toBeNull();
+      expect(el.querySelector('.reels__img--error')?.textContent?.trim()).toBe('No se pudo cargar la foto');
+      expect(dots().length).toBe(3);
+
+      await swipe(-120, 0);
+      expect(shownImage()).toBe('http://media.test/p2_700.jpg');
+      expect(dots()[1].classList).toContain('reels__dot--active');
+
+      await swipe(0, -120);
+      expect(shownImage()).toBe('http://media.test/p7_700.jpg');
+      expect(fixture.componentInstance.index()).toBe(1);
     });
   });
 
