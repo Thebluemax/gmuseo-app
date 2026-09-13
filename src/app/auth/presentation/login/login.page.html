@@ -1,0 +1,39 @@
+<ion-content class="login">
+  <div class="login__box">
+    @if (error()) {
+      <ion-text color="danger"><p class="login__error">{{ error() }}</p></ion-text>
+    }
+
+    <ion-input
+      class="login__input"
+      type="email"
+      fill="outline"
+      placeholder="Email"
+      [(ngModel)]="email"
+      autocomplete="email">
+    </ion-input>
+
+    <ion-input
+      class="login__input"
+      type="password"
+      fill="outline"
+      placeholder="Contraseña"
+      [(ngModel)]="password"
+      autocomplete="current-password">
+    </ion-input>
+
+    <ion-button
+      class="login__submit"
+      expand="block"
+      [disabled]="loading()"
+      (click)="login()">
+      @if (loading()) {
+        <ion-spinner name="crescent"></ion-spinner>
+      } @else {
+        Entrar
+      }
+    </ion-button>
+
+    <a class="login__link" routerLink="/auth/register">Crear cuenta</a>
+  </div>
+</ion-content>

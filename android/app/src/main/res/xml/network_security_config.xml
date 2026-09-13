@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Allow cleartext HTTP only to the LAN dev backend (MinIO media + local
+         API). Production is HTTPS-only. -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">192.168.0.154</domain>
+        <domain includeSubdomains="false">localhost</domain>
+    </domain-config>
+
+    <!-- Production deliberately has no entry here. It is served from
+         gmuseo.maximilianofernandez.net with a Let's Encrypt certificate, which
+         the system CAs already validate, and the platform default blocks
+         cleartext regardless. The block that used to sit here named
+         api.gmuseo.maximilianofernandez.net — the Kubernetes ingress, now off —
+         and added @raw/gmuseo_selfsigned as a trust anchor for it. An extra
+         trust anchor only ever widens what the app accepts, so it went with the
+         host it was for. -->
+</network-security-config>

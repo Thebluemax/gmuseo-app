@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">gmuseo</string>
+    <string name="title_activity_main">gmuseo</string>
+    <string name="package_name">io.gmuseo.app</string>
+    <string name="custom_url_scheme">io.gmuseo.app</string>
+</resources>

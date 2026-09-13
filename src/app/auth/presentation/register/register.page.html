@@ -1,0 +1,78 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/auth/login"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Crear cuenta</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>G-Museo</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      @if (generalError()) {
+        <ion-text color="danger">
+          <p>{{ generalError() }}</p>
+        </ion-text>
+      }
+
+      <ion-item [class.ion-invalid]="fieldError('name')" lines="full">
+        <ion-input label="Nombre" labelPlacement="floating" [(ngModel)]="name" autocomplete="given-name"></ion-input>
+      </ion-item>
+      @if (fieldError('name')) {
+        <ion-note color="danger" class="field-error">{{ fieldError('name') }}</ion-note>
+      }
+
+      <ion-item lines="full">
+        <ion-input label="Apellido (opcional)" labelPlacement="floating" [(ngModel)]="lastname" autocomplete="family-name"></ion-input>
+      </ion-item>
+      @if (fieldError('lastname')) {
+        <ion-note color="danger" class="field-error">{{ fieldError('lastname') }}</ion-note>
+      }
+
+      <ion-item lines="full">
+        <ion-input type="email" label="Email" labelPlacement="floating" [(ngModel)]="email" autocomplete="email"></ion-input>
+      </ion-item>
+      @if (fieldError('email')) {
+        <ion-note color="danger" class="field-error">{{ fieldError('email') }}</ion-note>
+      }
+
+      <ion-item lines="full">
+        <ion-input label="Usuario" labelPlacement="floating" [(ngModel)]="username" autocomplete="username"></ion-input>
+      </ion-item>
+      @if (fieldError('username')) {
+        <ion-note color="danger" class="field-error">{{ fieldError('username') }}</ion-note>
+      }
+
+      <ion-item lines="full">
+        <ion-input type="password" label="Contraseña" labelPlacement="floating" [(ngModel)]="password" autocomplete="new-password"></ion-input>
+      </ion-item>
+      @if (fieldError('password')) {
+        <ion-note color="danger" class="field-error">{{ fieldError('password') }}</ion-note>
+      }
+
+      <ion-item lines="full">
+        <ion-input type="password" label="Repetir contraseña" labelPlacement="floating" [(ngModel)]="passwordConfirmation" autocomplete="new-password"></ion-input>
+      </ion-item>
+
+      <ion-button
+        expand="block"
+        class="ion-margin-top"
+        [disabled]="loading()"
+        (click)="register()">
+        @if (loading()) {
+          <ion-spinner name="crescent"></ion-spinner>
+        } @else {
+          Crear cuenta
+        }
+      </ion-button>
+
+      <ion-button expand="block" fill="clear" routerLink="/auth/login">
+        Ya tengo cuenta
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

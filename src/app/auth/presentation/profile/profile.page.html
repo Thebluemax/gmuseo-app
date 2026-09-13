@@ -1,0 +1,25 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Perfil</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  @if (authService.user()) {
+    <ion-text>
+      <h2>{{ authService.user()?.name }}</h2>
+      <p>{{ authService.user()?.email }}</p>
+    </ion-text>
+  }
+  <ion-button expand="block" color="medium" (click)="logout()">
+    Cerrar sesión
+  </ion-button>
+  <!--
+    The scope is deliberate, so it has to be readable before the tap and without
+    opening anything: logging out revokes every token of the account. Without
+    this line, "my other device logged itself out" reads as a bug.
+  -->
+  <ion-note class="gm-logout-scope">
+    Se cerrará la sesión en todos tus dispositivos.
+  </ion-note>
+</ion-content>

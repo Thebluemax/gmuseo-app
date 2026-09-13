@@ -1,0 +1,29 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/catalog"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ artistService.selected()?.name ?? 'Artista' }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  @if (loading()) {
+    <ion-spinner name="crescent" />
+  } @else if (error()) {
+    <p class="artist-collection__message">{{ error() }}</p>
+  } @else {
+    @if (artistService.selected()?.bio; as bio) {
+      <p class="artist-collection__bio">{{ bio }}</p>
+    }
+
+    @if (graffitis().length > 0) {
+      @for (graffiti of graffitis(); track graffiti.id) {
+        <gm-graffiti-card [graffiti]="graffiti" />
+      }
+    } @else {
+      <!-- An artist with no attributed work is a valid catalogue entry. -->
+      <p class="artist-collection__message">Todavía no hay obra atribuida a este artista.</p>
+    }
+  }
+</ion-content>

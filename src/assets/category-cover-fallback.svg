@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Cover shown for a category that has no graffiti yet. The API carries no
+  category image, so this is the bundled stand-in: a blank wall with a faint
+  spray arc, deliberately flat so it reads as "nothing here yet" rather than
+  as a real piece.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img"
+     aria-label="No graffiti in this category yet">
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3a3a3f"/>
+      <stop offset="1" stop-color="#232327"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#wall)"/>
+  <g fill="none" stroke="#4c4c53" stroke-width="2">
+    <path d="M0 96h400M0 192h400"/>
+    <path d="M120 0v96M280 0v96M60 96v96M200 96v96M340 96v96M120 192v108M280 192v108"/>
+  </g>
+  <path d="M96 214c26-74 66-116 120-126 33-6 62 3 86 27"
+        fill="none" stroke="#6f6f78" stroke-width="14" stroke-linecap="round"/>
+  <circle cx="302" cy="115" r="9" fill="#6f6f78"/>
+</svg>
