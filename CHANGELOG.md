@@ -50,6 +50,14 @@ store — see [CLAUDE.md](CLAUDE.md#shared-contract).
   restored from `CapacitorWebXMLHttpRequest`) instead of `CapacitorWebFetch`,
   because only XHR reports how much of the body has been sent. The
   `SubmissionRepository.create()` port takes an optional progress listener.
+- Publishing shows where it is: "Subiendo fotos… N %" while the body leaves
+  the device, then "Procesando en el servidor…" until the answer. Leaving the
+  form mid-send asks first and says the send goes on regardless. On success
+  the feed reloads from the top with the new piece first and says "¡Graffiti
+  publicado!" only once it is on screen — the old toast fired over a feed
+  still loading, and the feed never reloaded because Ionic keeps the page
+  alive. A dropped connection keeps the photos, category and position and
+  offers a retry.
 - The feed loads the `md` photo variant (700px, ~112 KB) instead of `lg`
   (1900px, ~536 KB), recreates the `<img>` per photo so a swipe never leaves
   the previous photo on screen, shows a loading state until the photo is in,

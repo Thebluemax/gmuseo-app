@@ -84,6 +84,7 @@
     (click)="submit()">
     @if (submitting()) {
       <ion-spinner name="crescent"></ion-spinner>
+      <span class="submit__phase">{{ sendingLabel() }}</span>
     } @else {
       Publicar
     }

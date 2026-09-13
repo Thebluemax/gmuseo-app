@@ -66,6 +66,19 @@ export class SubmitPage implements OnInit {
 
   readonly locating = signal(false);
   readonly submitting = signal(false);
+  /**
+   * Where the send is. A real upload is tens of seconds of sending and tens
+   * of processing; the person must be able to tell one from the other, and
+   * both from a hang.
+   */
+  readonly phase = signal<'idle' | 'uploading' | 'waiting'>('idle');
+  /** Percent of the body sent, once the transport has said so; null until then. */
+  readonly percent = signal<number | null>(null);
+  readonly sendingLabel = computed(() => {
+    if (this.phase() === 'waiting') return 'Procesando en el servidor…';
+    const percent = this.percent();
+    return percent === null ? 'Subiendo fotos…' : `Subiendo fotos… ${percent} %`;
+  });
 
   /** Why the device gave no position, until it does. */
   readonly locationFailure = signal<LocationFailure | null>(null);
@@ -185,16 +198,28 @@ export class SubmitPage implements OnInit {
     if (!this.canSubmit() || !coordinates) return;
 
     this.submitting.set(true);
+    this.phase.set('uploading');
+    this.percent.set(null);
     this.error.set(null);
     this.photosError.set(null);
     try {
-      await this.createGraffiti.execute({
-        category: this.categoryId(),
-        coordinates,
-        photos: this.photos(),
-      });
-      await this.showToast('¡Graffiti subido!');
-      this.router.navigate(['/tabs/catalog']);
+      const id = await this.createGraffiti.execute(
+        {
+          category: this.categoryId(),
+          coordinates,
+          photos: this.photos(),
+        },
+        ({ sent, total }) => {
+          if (sent >= total) {
+            this.phase.set('waiting');
+          } else {
+            this.percent.set(Math.floor((100 * sent) / total));
+          }
+        },
+      );
+      // The confirmation is the feed itself: it reloads with the new piece
+      // first and says so there, once it is on screen (see GraffitiPage).
+      this.router.navigate(['/tabs/catalog'], { state: { createdId: id } });
     } catch (err) {
       if (err instanceof UnauthorizedError) {
         // Dead session: tear down auth and send the user to login to re-auth.
@@ -211,6 +236,7 @@ export class SubmitPage implements OnInit {
       this.error.set(err instanceof Error ? err.message : 'No se pudo crear el graffiti.');
     } finally {
       this.submitting.set(false);
+      this.phase.set('idle');
     }
   }
 

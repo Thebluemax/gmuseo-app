@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { TabsPage } from './shell/tabs.page';
 import { authGuard } from './auth/application/auth.guard';
+import { leaveWhileSendingGuard } from './submission/presentation/submit/leave-while-sending.guard';
 
 export const routes: Routes = [
   {
@@ -31,6 +32,7 @@ export const routes: Routes = [
       {
         path: 'submit',
         canActivate: [authGuard],
+        canDeactivate: [leaveWhileSendingGuard],
         loadComponent: () =>
           import('./submission/presentation/submit/submit.page').then((m) => m.SubmitPage),
       },

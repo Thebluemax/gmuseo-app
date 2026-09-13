@@ -1,12 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { ToastController } from '@ionic/angular/standalone';
 
 import { SubmitPage } from './submit.page';
 import { CameraPort } from '../../domain/ports/camera.port';
 import { GeolocationPort } from '../../domain/ports/geolocation.port';
-import { SubmissionRepository } from '../../domain/submission.repository';
+import { SubmissionRepository, UploadProgressListener } from '../../domain/submission.repository';
 import {
   Artist, CapturedPhoto, Coordinates, LocationError, LocationFailure, NewGraffiti,
   UPLOAD_LIMITS, ValidationError,
@@ -54,12 +54,22 @@ class FakeGeolocation extends GeolocationPort {
 class FakeSubmissionRepository extends SubmissionRepository {
   failure: Error | null = null;
   sent: { graffiti: NewGraffiti; files: Blob[] }[] = [];
+  /** The page's progress listener for the send in flight, so a test can play the transport. */
+  onProgress: UploadProgressListener | undefined;
+  /** When set, `create` stays pending until the test resolves it. */
+  hold: { resolve: (id: string) => void; reject: (err: Error) => void } | null = null;
 
-  create(graffiti: NewGraffiti, files: Blob[]): Promise<string> {
+  create(graffiti: NewGraffiti, files: Blob[], onProgress?: UploadProgressListener): Promise<string> {
     this.sent.push({ graffiti, files });
+    this.onProgress = onProgress;
     if (this.failure) return Promise.reject(this.failure);
+    if (this.hold === null && this.holdNext) {
+      return new Promise<string>((resolve, reject) => { this.hold = { resolve, reject }; });
+    }
     return Promise.resolve('a20c46cf-836b-42d8-9a96-67189aa8490f');
   }
+
+  holdNext = false;
 
   listArtists(): Promise<Artist[]> {
     return Promise.resolve([]);
@@ -333,6 +343,66 @@ describe('SubmitPage', () => {
         description: undefined,
       });
       expect(submissions.sent[0].files.length).toBe(1);
+    });
+  });
+
+  describe('while sending', () => {
+    async function startSending(): Promise<void> {
+      await render();
+      await takePhotos(photo(1));
+      page.categoryId.set(CATEGORIES[0].id);
+      await settle();
+      submissions.holdNext = true;
+      void page.submit();
+      await settle();
+    }
+
+    /** Tens of seconds pass here; the person must see sending, then waiting, not one spinner. */
+    it('says it is uploading, with the percent once the transport reports it', async () => {
+      await startSending();
+
+      expect(text('.submit__phase')).toBe('Subiendo fotos…');
+      expect(page.canSubmit()).toBeFalse();
+
+      submissions.onProgress?.({ sent: 30, total: 100 });
+      await settle();
+      expect(text('.submit__phase')).toBe('Subiendo fotos… 30 %');
+
+      submissions.onProgress?.({ sent: 99, total: 100 });
+      await settle();
+      expect(text('.submit__phase')).toBe('Subiendo fotos… 99 %');
+    });
+
+    it('says the server is processing once the body is out, with the button still disabled', async () => {
+      await startSending();
+
+      submissions.onProgress?.({ sent: 100, total: 100 });
+      await settle();
+
+      expect(text('.submit__phase')).toBe('Procesando en el servidor…');
+      expect(page.canSubmit()).toBeFalse();
+      expect(page.submitting()).toBeTrue();
+
+      const navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+      submissions.hold?.resolve('a20c46cf-836b-42d8-9a96-67189aa8490f');
+      await settle();
+      expect(page.submitting()).toBeFalse();
+      expect(navigate).toHaveBeenCalled();
+    });
+
+    /** No answer at all: the selection stays and the button comes back, so the person can retry. */
+    it('keeps the selection and re-enables sending when the connection drops', async () => {
+      await startSending();
+
+      submissions.hold?.reject(new Error('No se pudo enviar el graffiti. Comprueba la conexión y reintentá.'));
+      await settle();
+
+      expect(text('.submit__error')).toBe('No se pudo enviar el graffiti. Comprueba la conexión y reintentá.');
+      expect(page.photos().length).toBe(1);
+      expect(page.categoryId()).toBe(CATEGORIES[0].id);
+      expect(page.coordinates()).toEqual(HERE);
+      expect(page.canSubmit()).toBeTrue();
+      expect(forceLogout).not.toHaveBeenCalled();
     });
   });
 

@@ -105,6 +105,12 @@ export class GraffitiReelsComponent implements AfterViewInit, OnDestroy {
     el.removeEventListener('pointerup', this.onUp);
   }
 
+  /** Back to the first photo of the first artwork, as after the list was reloaded. */
+  showFirst(): void {
+    this.index.set(0);
+    this.imageIndex.set(0);
+  }
+
   markReady(url: string): void {
     this.setState(url, 'ready');
   }
