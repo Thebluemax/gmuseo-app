@@ -6,7 +6,7 @@ import { CategoryMainComponent } from './category-main.component';
 import { CategoryRepository } from 'src/app/catalog/domain/category.repository';
 import { Category } from 'src/app/catalog/domain/category.model';
 import { GraffitiRepository } from 'src/app/graffiti/domain/repositories/graffiti.repository';
-import { Graffiti } from 'src/app/graffiti/domain/models/graffiti.model';
+import { Graffiti, GraffitiDetail } from 'src/app/graffiti/domain/models/graffiti.model';
 import { GraffitiFilters } from 'src/app/graffiti/domain/models/graffiti-filters.model';
 import { PaginatedResponse } from 'src/app/shared/domain/pagination.model';
 import { CategoryMock } from 'src/app/mocks/category.mock';
@@ -56,8 +56,8 @@ class GraffitiRepositoryDouble extends GraffitiRepository {
     return page(this.list);
   }
 
-  override async getById(id: string): Promise<Graffiti> {
-    return this.list.filter((g) => g.id === id)[0];
+  override async getById(id: string): Promise<GraffitiDetail> {
+    return { ...this.list.filter((g) => g.id === id)[0], sightings: [] };
   }
 }
 
@@ -124,11 +124,11 @@ describe('CategoryMainComponent', () => {
 
     const images = (fixture.nativeElement as HTMLElement).querySelectorAll('.graffiti-thumb img');
     expect(images.length).toBe(GRAFFITIS.length);
-    expect(images[0].getAttribute('src')).toBe(GRAFFITIS[0].sightings[0].photos[0].files.sm);
+    expect(images[0].getAttribute('src')).toBe(GRAFFITIS[0].photos[0].files.sm);
   });
 
-  it('falls back to the graffiti cover when a sighting carries no photo', () => {
-    const bare: Graffiti = { ...GRAFFITIS[0], sightings: [] };
+  it('falls back to the graffiti cover when the artwork carries no photo', () => {
+    const bare: Graffiti = { ...GRAFFITIS[0], photos: [], photosCount: 0 };
 
     expect(component.thumbnail(bare)).toBe(bare.cover);
   });

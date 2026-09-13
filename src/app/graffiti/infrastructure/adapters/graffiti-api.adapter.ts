@@ -1,6 +1,6 @@
 import { environment } from 'src/environments/environment';
 import {
-  Graffiti, GraffitiPhoto, GraffitiSighting, PhotoFiles,
+  Graffiti, GraffitiDetail, GraffitiPhoto, GraffitiSighting, PhotoFiles, SightingPhoto,
 } from '../../domain/models/graffiti.model';
 import { ArtistRef } from '../../../artists/domain/artist.model';
 
@@ -14,8 +14,11 @@ export interface PhotoFilesDto {
 export interface GraffitiPhotoDto {
   id: string;
   files: PhotoFilesDto;
-  owner: string;
   created_at: string;
+}
+
+export interface SightingPhotoDto extends GraffitiPhotoDto {
+  owner: string;
   updated_at: string;
 }
 
@@ -25,7 +28,7 @@ export interface GraffitiSightingDto {
   spotted_at: string;
   state: string;
   description: string | null;
-  photos: GraffitiPhotoDto[];
+  photos: SightingPhotoDto[];
 }
 
 export interface ArtistRefDto {
@@ -33,15 +36,23 @@ export interface ArtistRefDto {
   name: string;
 }
 
+/** An element of GET /graffitis. */
 export interface GraffitiDto {
   id: string;
   category: string;
   artist: ArtistRefDto | null;
   latitude: number;
   longitude: number;
+  created_at: string | null;
   vote: number;
   active: boolean;
   cover: string;
+  photos: GraffitiPhotoDto[];
+  photos_count: number;
+}
+
+/** The body of GET /graffitis/{id}: the listing element plus its sightings. */
+export interface GraffitiDetailDto extends GraffitiDto {
   sightings: GraffitiSightingDto[];
 }
 
@@ -72,9 +83,20 @@ export function toGraffiti(dto: GraffitiDto): Graffiti {
     artist: toArtistRef(dto.artist),
     latitude: dto.latitude,
     longitude: dto.longitude,
+    // Absent and null both mean "no date recorded": one value for the screen
+    // to branch on, never undefined or an empty string.
+    createdAt: dto.created_at ?? null,
     vote: dto.vote,
     active: dto.active,
     cover: mediaUrl(dto.cover),
+    photos: (dto.photos ?? []).map(toPhoto),
+    photosCount: dto.photos_count,
+  };
+}
+
+export function toGraffitiDetail(dto: GraffitiDetailDto): GraffitiDetail {
+  return {
+    ...toGraffiti(dto),
     sightings: (dto.sightings ?? []).map(toSighting),
   };
 }
@@ -97,7 +119,7 @@ function toSighting(dto: GraffitiSightingDto): GraffitiSighting {
     spottedAt: dto.spotted_at,
     state: dto.state,
     description: dto.description,
-    photos: (dto.photos ?? []).map(toPhoto),
+    photos: (dto.photos ?? []).map(toSightingPhoto),
   };
 }
 
@@ -105,8 +127,14 @@ function toPhoto(dto: GraffitiPhotoDto): GraffitiPhoto {
   return {
     id: dto.id,
     files: toFiles(dto.files),
-    owner: dto.owner,
     createdAt: dto.created_at,
+  };
+}
+
+function toSightingPhoto(dto: SightingPhotoDto): SightingPhoto {
+  return {
+    ...toPhoto(dto),
+    owner: dto.owner,
     updatedAt: dto.updated_at,
   };
 }

@@ -8,8 +8,8 @@
     <h1 class="topbar__title">Nuevo graffiti</h1>
   </header>
 
-  @if (error()) {
-    <ion-text color="danger"><p class="submit__error">{{ error() }}</p></ion-text>
+  @if (error(); as message) {
+    <ion-text color="danger"><p class="submit__error">{{ message }}</p></ion-text>
   }
 
   <!-- Photos -->
@@ -25,82 +25,56 @@
       }
     </div>
   }
-  <ion-button expand="block" fill="outline" (click)="capture()">
+  <ion-button expand="block" fill="outline" (click)="capture()" [disabled]="photos().length >= limits.maxFiles">
     <ion-icon slot="start" name="camera-outline"></ion-icon>
     {{ photos().length > 0 ? 'Agregar más fotos' : 'Tomar fotos' }}
   </ion-button>
+  <ion-note class="hint">{{ photos().length }} de {{ limits.maxFiles }} fotos</ion-note>
+  @if (photosError(); as message) {
+    <ion-note color="danger" class="hint submit__photos-error" role="alert">{{ message }}</ion-note>
+  }
 
-  <!-- Location (captured automatically with each photo) -->
-  <ion-item lines="full">
-    <ion-icon slot="start" name="location-outline"></ion-icon>
-    <ion-label>
-      @if (locating()) {
-        Obteniendo ubicación…
-      } @else if (coordinates(); as c) {
-        {{ c.latitude | number: '1.5-5' }}, {{ c.longitude | number: '1.5-5' }}
-      } @else {
-        Ubicación no disponible
-      }
-    </ion-label>
-  </ion-item>
-
-  <!-- Description -->
-  <ion-item lines="full">
-    <ion-textarea
-      label="Descripción (opcional)"
-      labelPlacement="floating"
-      [autoGrow]="true"
-      [(ngModel)]="description">
-    </ion-textarea>
-  </ion-item>
-
-  <!-- Advanced options toggle -->
-  <ion-item lines="none">
-    <ion-toggle
-      [checked]="showAdvanced()"
-      (ionChange)="showAdvanced.set($event.detail.checked)">
-      Opciones avanzadas
-    </ion-toggle>
-  </ion-item>
-
-  @if (showAdvanced()) {
-    <!-- Category -->
+  <!-- Category: chosen from the catalogue, never defaulted. -->
+  @if (categoryService.error(); as message) {
+    <div class="submit__catalogue-error" role="alert">
+      <ion-note color="danger" class="hint">{{ message }}</ion-note>
+      <ion-button size="small" fill="outline" (click)="loadCategories()">Reintentar</ion-button>
+    </div>
+  } @else {
     <ion-item lines="full">
       <ion-select
         label="Categoría"
         labelPlacement="floating"
-        [(ngModel)]="categoryId"
+        [ngModel]="categoryId()"
+        (ngModelChange)="categoryId.set($event)"
+        [disabled]="categoryService.loading()"
         placeholder="Elegí una categoría">
         @for (cat of categoryService.categories(); track cat.id) {
           <ion-select-option [value]="cat.id">{{ cat.name }}</ion-select-option>
         }
       </ion-select>
     </ion-item>
-    @if (categoryService.error()) {
-      <ion-note color="danger" class="hint">{{ categoryService.error() }}</ion-note>
-    }
+  }
 
-    <!-- Artist -->
-    <ion-item lines="full">
-      <ion-select
-        label="Artista"
-        labelPlacement="floating"
-        [(ngModel)]="artistId"
-        placeholder="Elegí un artista">
-        @for (artist of artists(); track artist.id) {
-          <ion-select-option [value]="artist.id">{{ artist.name }}</ion-select-option>
-        }
-      </ion-select>
-    </ion-item>
+  <!-- Location: read from the device, never typed. Only its status shows. -->
+  <ion-item lines="full">
+    <ion-icon slot="start" name="location-outline"></ion-icon>
+    <div class="submit__location">
+      @if (locating()) {
+        <span>Obteniendo ubicación…</span>
+      } @else if (coordinates()) {
+        <span class="submit__location-ok">Ubicación capturada</span>
+      } @else if (locationMessage(); as message) {
+        <span class="submit__location-error" role="alert">{{ message }}</span>
+        <ion-button size="small" fill="outline" (click)="locate()">Reintentar</ion-button>
+      } @else {
+        <span>Ubicación no disponible</span>
+      }
+    </div>
+  </ion-item>
 
-    <!-- State -->
-    <ion-item lines="full">
-      <ion-select label="Estado" labelPlacement="floating" [(ngModel)]="state">
-        @for (s of states; track s.value) {
-          <ion-select-option [value]="s.value">{{ s.label }}</ion-select-option>
-        }
-      </ion-select>
-    </ion-item>
+  @if (missing().length > 0) {
+    <ion-note class="hint submit__missing">Falta: {{ missing().join(', ') }}.</ion-note>
   }
 
   <ion-button

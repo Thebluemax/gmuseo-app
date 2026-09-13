@@ -1,114 +1,110 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
-  IonContent, IonItem, IonLabel, IonSelect, IonSelectOption,
-  IonButton, IonIcon, IonText, IonSpinner, IonNote, IonTextarea,
-  IonToggle, ToastController,
+  IonContent, IonItem, IonSelect, IonSelectOption,
+  IonButton, IonIcon, IonText, IonSpinner, IonNote,
+  ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { cameraOutline, locationOutline, closeOutline, arrowBackOutline } from 'ionicons/icons';
 import { CameraPort } from '../../domain/ports/camera.port';
 import { GeolocationPort } from '../../domain/ports/geolocation.port';
 import {
-  Artist, CapturedPhoto, Coordinates, GraffitiState, UnauthorizedError,
+  CapturedPhoto, Coordinates, LocationError, LocationFailure, UnauthorizedError,
+  UPLOAD_LIMITS, ValidationError,
 } from '../../domain/models/submission.model';
 import { CreateGraffitiUseCase } from '../../application/create-graffiti.usecase';
-import { SubmissionRepository } from '../../domain/submission.repository';
 import { CategoryService } from '../../../catalog/application/category.service';
 import { AuthService } from '../../../auth/application/auth.service';
 
-const STATES: { value: GraffitiState; label: string }[] = [
-  { value: 'intact', label: 'Intacto' },
-  { value: 'damaged', label: 'Dañado' },
-  { value: 'painted_over', label: 'Tapado' },
-  { value: 'removed', label: 'Eliminado' },
-];
+/**
+ * What each location failure means for the person, and what fixes it. Three
+ * cases, three actions: grant the permission, switch location on, or wait and
+ * try again.
+ */
+const LOCATION_MESSAGES: Record<LocationFailure, string> = {
+  permission_denied:
+    'La ubicación es necesaria para publicar. El permiso está denegado: concedelo en los ajustes del dispositivo y reintentá.',
+  unavailable:
+    'La ubicación del dispositivo está desactivada. Activala y reintentá.',
+  timeout:
+    'No se pudo fijar la posición a tiempo. Reintentá.',
+};
 
+/**
+ * The prototype's form: photos and a category. Coordinates come from the
+ * device without being asked for; artist, state and description exist in the
+ * API but not here. Sending is disabled until the three things are in, and the
+ * form says which one is missing instead of leaving a dead button.
+ */
 @Component({
   selector: 'gm-submit',
   templateUrl: './submit.page.html',
   styleUrls: ['./submit.page.scss'],
   standalone: true,
   imports: [
-    IonContent, IonItem, IonLabel, IonSelect, IonSelectOption,
-    IonButton, IonIcon, IonText, IonSpinner, IonNote, IonTextarea,
-    IonToggle,
-    FormsModule, DecimalPipe,
+    IonContent, IonItem, IonSelect, IonSelectOption,
+    IonButton, IonIcon, IonText, IonSpinner, IonNote,
+    FormsModule,
   ],
 })
 export class SubmitPage implements OnInit {
   private camera = inject(CameraPort);
   private geolocation = inject(GeolocationPort);
   private createGraffiti = inject(CreateGraffitiUseCase);
-  private submissionRepo = inject(SubmissionRepository);
   private router = inject(Router);
   private auth = inject(AuthService);
   private toast = inject(ToastController);
   readonly categoryService = inject(CategoryService);
 
-  readonly states = STATES;
+  readonly limits = UPLOAD_LIMITS;
 
-  // Everything except the description defaults silently; the user only adds a
-  // photo (location is captured automatically) and optionally a description.
-  // The advanced toggle reveals category/artist/state for manual override.
-  categoryId = '';
-  artistId = '';
-  state: GraffitiState = 'intact';
-  description = '';
-
-  readonly showAdvanced = signal(false);
-
+  readonly categoryId = signal('');
   readonly photos = signal<CapturedPhoto[]>([]);
   readonly coordinates = signal<Coordinates | null>(null);
-  readonly artists = signal<Artist[]>([]);
 
   readonly locating = signal(false);
   readonly submitting = signal(false);
+
+  /** Why the device gave no position, until it does. */
+  readonly locationFailure = signal<LocationFailure | null>(null);
+  readonly locationMessage = computed(() => {
+    const failure = this.locationFailure();
+    return failure ? LOCATION_MESSAGES[failure] : null;
+  });
+
+  /** A problem with the photos chosen: too many, too big, or refused by the server. */
+  readonly photosError = signal<string | null>(null);
+  /** Anything else that stopped the upload. */
   readonly error = signal<string | null>(null);
 
-  // Artist is intentionally NOT required: most street art is anonymous, and
-  // create() omits artist_id when none is chosen, which is exactly how the API
-  // records unknown authorship.
-  readonly canSubmit = computed(
-    () =>
-      this.photos().length > 0 &&
-      !!this.coordinates() &&
-      !!this.categoryId &&
-      !this.submitting()
-  );
+  /** What still has to be in before sending, in the order the form shows it. */
+  readonly missing = computed(() => {
+    const missing: string[] = [];
+    if (this.photos().length === 0) missing.push('al menos una foto');
+    if (!this.categoryId()) missing.push('la categoría');
+    if (!this.coordinates()) missing.push('la ubicación');
+    return missing;
+  });
+
+  readonly canSubmit = computed(() => this.missing().length === 0 && !this.submitting());
 
   constructor() {
     addIcons({ cameraOutline, locationOutline, closeOutline, arrowBackOutline });
   }
 
   ngOnInit(): void {
-    this.loadCategories();
-    this.loadArtists();
-    this.locate(); // best-effort GPS on entry
-  }
-
-  private async loadCategories(): Promise<void> {
-    await this.categoryService.loadList();
-    // Default to the first category — the form hides this choice from the user.
-    this.categoryId = this.categoryService.categories()[0]?.id ?? '';
+    void this.loadCategories();
+    void this.locate();
   }
 
   /**
-   * The picker is optional and starts empty. Anonymous is the default because
-   * it is the majority case, and it means sending no artist at all — there is
-   * no anonymous account to look up any more, and picking the first artist in
-   * the list would attribute someone else's work by accident.
+   * The category is chosen, not defaulted: a first-in-the-list default would
+   * file every piece under whatever category happens to sort first.
    */
-  private async loadArtists(): Promise<void> {
-    try {
-      this.artists.set(await this.submissionRepo.listArtists());
-    } catch {
-      // A catalogue that will not load must not block an upload: the piece is
-      // simply filed as anonymous.
-      this.artists.set([]);
-    }
+  async loadCategories(): Promise<void> {
+    await this.categoryService.loadList();
   }
 
   back(): void {
@@ -116,18 +112,53 @@ export class SubmitPage implements OnInit {
   }
 
   async capture(): Promise<void> {
+    this.photosError.set(null);
     this.error.set(null);
+    let captured: CapturedPhoto[];
     try {
-      const captured = await this.camera.capturePhotos();
-      this.photos.update((current) => [...current, ...captured]);
-      // Refresh GPS on every photo so location always matches the shot.
-      await this.locate();
+      captured = await this.camera.capturePhotos();
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'No se pudo capturar la foto.');
+      return;
     }
+    this.addPhotos(captured);
+    // Refresh GPS on every photo so location always matches the shot.
+    await this.locate();
+  }
+
+  /**
+   * Stops at the upload limits before anything is sent: a file over the size
+   * cap is dropped and named, and photos past the count cap are not added. The
+   * ones that fit stay selected either way.
+   */
+  private addPhotos(captured: CapturedPhoto[]): void {
+    const { maxFiles, maxBytesPerFile } = UPLOAD_LIMITS;
+    const problems: string[] = [];
+
+    const sized = captured.filter((p) => p.blob.size <= maxBytesPerFile);
+    const tooBig = captured.length - sized.length;
+    if (tooBig > 0) {
+      problems.push(
+        `${tooBig === 1 ? 'Una foto supera' : `${tooBig} fotos superan`} el máximo de ${formatMb(maxBytesPerFile)} por foto y no se añadió${tooBig === 1 ? '' : 'eron'}.`
+      );
+    }
+
+    const room = Math.max(0, maxFiles - this.photos().length);
+    const kept = sized.slice(0, room);
+    if (sized.length > room) {
+      problems.push(
+        `Caben ${maxFiles} fotos como máximo: ya hay ${this.photos().length} elegida${this.photos().length === 1 ? '' : 's'} y se añadieron ${kept.length} de ${sized.length}.`
+      );
+    }
+
+    sized.slice(room).concat(captured.filter((p) => p.blob.size > maxBytesPerFile))
+      .forEach((p) => URL.revokeObjectURL(p.previewUrl));
+    if (kept.length > 0) this.photos.update((current) => [...current, ...kept]);
+    if (problems.length > 0) this.photosError.set(problems.join(' '));
   }
 
   removePhoto(index: number): void {
+    this.photosError.set(null);
     this.photos.update((current) => {
       const removed = current[index];
       if (removed) URL.revokeObjectURL(removed.previewUrl);
@@ -135,32 +166,32 @@ export class SubmitPage implements OnInit {
     });
   }
 
+  /** Ask the device again. Photos and category stay exactly as chosen. */
   async locate(): Promise<void> {
     this.locating.set(true);
+    this.locationFailure.set(null);
     try {
       this.coordinates.set(await this.geolocation.getCurrentPosition());
     } catch (err) {
-      this.error.set(err instanceof Error ? err.message : 'No se pudo obtener la ubicación.');
+      this.coordinates.set(null);
+      this.locationFailure.set(err instanceof LocationError ? err.reason : 'unavailable');
     } finally {
       this.locating.set(false);
     }
   }
 
   async submit(): Promise<void> {
-    const photos = this.photos();
     const coordinates = this.coordinates();
-    if (photos.length === 0 || !coordinates || !this.categoryId) return;
+    if (!this.canSubmit() || !coordinates) return;
 
     this.submitting.set(true);
     this.error.set(null);
+    this.photosError.set(null);
     try {
       await this.createGraffiti.execute({
-        category: this.categoryId,
-        artistId: this.artistId || undefined,
+        category: this.categoryId(),
         coordinates,
-        photos,
-        state: this.state,
-        description: this.description.trim() || undefined,
+        photos: this.photos(),
       });
       await this.showToast('¡Graffiti subido!');
       this.router.navigate(['/tabs/catalog']);
@@ -169,6 +200,12 @@ export class SubmitPage implements OnInit {
         // Dead session: tear down auth and send the user to login to re-auth.
         await this.showToast('Tu sesión expiró. Iniciá sesión de nuevo.');
         await this.auth.forceLogout();
+        return;
+      }
+      // The selection stays: the server said what is wrong with it, and the
+      // person corrects that, not the whole form.
+      if (err instanceof ValidationError) {
+        this.photosError.set(err.message);
         return;
       }
       this.error.set(err instanceof Error ? err.message : 'No se pudo crear el graffiti.');
@@ -181,4 +218,8 @@ export class SubmitPage implements OnInit {
     const toast = await this.toast.create({ message, color: 'success', duration: 2500 });
     await toast.present();
   }
+}
+
+function formatMb(bytes: number): string {
+  return `${Math.round(bytes / (1024 * 1024))} MB`;
 }

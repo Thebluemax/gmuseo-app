@@ -3,6 +3,5 @@ export interface GraffitiFilters {
   perPage?: number;
   category?: string;
   artist?: string;
-  q?: string;
   sort?: string;
 }

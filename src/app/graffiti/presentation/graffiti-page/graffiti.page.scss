@@ -54,6 +54,8 @@
     position: absolute;
     inset: 0;
     display: flex;
+    flex-direction: column;
+    gap: 12px;
     align-items: center;
     justify-content: center;
     padding: 1.5rem;
@@ -63,4 +65,25 @@
     font-weight: 600;
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
   }
+}
+
+// A failed page while there is already something on screen: sits above the
+// byline, below nothing, and leaves the reels usable.
+.reels-notice {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: calc(32px + var(--ion-safe-area-top, 0px));
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(18, 18, 18, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #fff;
+  font-size: 0.9rem;
 }

@@ -130,30 +130,21 @@ describe('HttpCategoryRepository', () => {
             id: 'a20c46cf-836b-42d8-9a96-67189aa8490f',
             category: CATEGORY_ID,
             latitude: -5.6, longitude: 65.3, vote: 1, active: true,
+            created_at: '2026-05-17T07:03:35.000000Z',
             cover: '/gmuseo/cover_700.jpg',
-            sightings: [
+            photos: [
               {
-                id: 'a20c46cf-9586-4703-aa52-fda662272d2e',
-                spotted_by: 'Artur Artist',
-                spotted_at: '2026-05-17T07:03:35.000000Z',
-                state: 'intact',
-                description: null,
-                photos: [
-                  {
-                    id: 'a20c46cf-9670-4025-82f4-80e63c4accc8',
-                    files: {
-                      lg: '/gmuseo/photo_1900.jpg',
-                      md: '/gmuseo/photo_700.jpg',
-                      sm: '/gmuseo/photo_350.jpg',
-                      thumb: '/gmuseo/photo_150.jpg',
-                    },
-                    owner: 'Artur Artist',
-                    created_at: '2026-05-17T07:03:35.000000Z',
-                    updated_at: '2026-05-17T07:03:35.000000Z',
-                  },
-                ],
+                id: 'a20c46cf-9670-4025-82f4-80e63c4accc8',
+                files: {
+                  lg: '/gmuseo/photo_1900.jpg',
+                  md: '/gmuseo/photo_700.jpg',
+                  sm: '/gmuseo/photo_350.jpg',
+                  thumb: '/gmuseo/photo_150.jpg',
+                },
+                created_at: '2026-05-17T07:03:35.000000Z',
               },
             ],
+            photos_count: 1,
           },
         ])
       );
@@ -161,7 +152,7 @@ describe('HttpCategoryRepository', () => {
       expect(await pending).toBe(`${environment.mediaUrl}/gmuseo/photo_350.jpg`);
     });
 
-    it('falls back to the graffiti cover when no sighting carries a photo', async () => {
+    it('falls back to the graffiti cover when the artwork carries no photo', async () => {
       const pending = repo.getCoverImage(CATEGORY_ID);
 
       http.expectOne((r) => r.url === `${BASE_URL}/v1/graffitis`).flush(
@@ -170,8 +161,10 @@ describe('HttpCategoryRepository', () => {
             id: 'a20c46cf-836b-42d8-9a96-67189aa8490f',
             category: CATEGORY_ID,
             latitude: -5.6, longitude: 65.3, vote: 0, active: true,
+            created_at: '2026-05-17T07:03:35.000000Z',
             cover: '/gmuseo/cover_700.jpg',
-            sightings: [],
+            photos: [],
+            photos_count: 0,
           },
         ])
       );

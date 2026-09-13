@@ -2,7 +2,9 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom, map } from 'rxjs';
 import { SubmissionRepository } from '../domain/submission.repository';
-import { Artist, NewGraffiti, UnauthorizedError } from '../domain/models/submission.model';
+import {
+  Artist, NewGraffiti, UnauthorizedError, ValidationError,
+} from '../domain/models/submission.model';
 import { API_BASE_URL } from '../../shared/infrastructure/api.config';
 import { SecureTokenStorage } from '../../auth/domain/token-storage';
 
@@ -61,6 +63,12 @@ export class HttpSubmissionRepository extends SubmissionRepository {
     if (response.status === 401) {
       throw new UnauthorizedError();
     }
+    // 422 carries the reason — too many files, one too large, not an image.
+    // Surface it as the server wrote it: the form shows it next to the
+    // selection so the person can fix exactly that.
+    if (response.status === 422) {
+      throw await toValidationError(response);
+    }
     if (!response.ok) {
       throw new Error(`La creación del graffiti falló (HTTP ${response.status}).`);
     }
@@ -78,4 +86,25 @@ export class HttpSubmissionRepository extends SubmissionRepository {
         .pipe(map((res) => res.data.map((dto) => ({ id: dto.id, name: dto.name }))))
     );
   }
+}
+
+/**
+ * Laravel's 422 body: a `message` plus `errors` keyed by field. The field
+ * messages are what say what went wrong ("The files.0 must not be greater than
+ * 10240 kilobytes."); the top-level message only repeats the first of them.
+ */
+async function toValidationError(response: Response): Promise<ValidationError> {
+  let body: { message?: string; errors?: Record<string, string[]> } = {};
+  try {
+    body = await response.json();
+  } catch {
+    body = {};
+  }
+  const errors = body.errors ?? {};
+  const reasons = Object.values(errors).flat();
+  const message = reasons.length > 0
+    ? reasons.join(' ')
+    : body.message ?? 'El servidor rechazó el alta.';
+
+  return new ValidationError(message, errors);
 }

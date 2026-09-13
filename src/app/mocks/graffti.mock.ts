@@ -33,31 +33,22 @@ function graffiti(id: string, index: number): Graffiti {
       : null,
     latitude: 41.3874 + index / 1000,
     longitude: 2.1686 + index / 1000,
+    createdAt: '2026-05-17T07:03:35.000000Z',
     vote: index,
     active: true,
     cover: `${base}/cover_700.jpg`,
-    sightings: [
+    photos: [
       {
-        id: `a20c46cf-9586-4703-aa52-fda66227${index}d2e`.slice(0, 36),
-        spottedBy: 'Artur Artist',
-        spottedAt: '2026-05-17T07:03:35.000000Z',
-        state: 'intact',
-        description: 'Pieza en el muro del taller.',
-        photos: [
-          {
-            id: `a20c46cf-9670-4025-82f4-80e63c4a${index}cc8`.slice(0, 36),
-            files: {
-              lg: `${base}/photo_1900.jpg`,
-              md: `${base}/photo_700.jpg`,
-              sm: `${base}/photo_350.jpg`,
-              thumb: `${base}/photo_150.jpg`,
-            },
-            owner: 'Artur Artist',
-            createdAt: '2026-05-17T07:03:35.000000Z',
-            updatedAt: '2026-05-17T07:03:35.000000Z',
-          },
-        ],
+        id: `a20c46cf-9670-4025-82f4-80e63c4a${index}cc8`.slice(0, 36),
+        files: {
+          lg: `${base}/photo_1900.jpg`,
+          md: `${base}/photo_700.jpg`,
+          sm: `${base}/photo_350.jpg`,
+          thumb: `${base}/photo_150.jpg`,
+        },
+        createdAt: '2026-05-17T07:03:35.000000Z',
       },
     ],
+    photosCount: 1,
   };
 }

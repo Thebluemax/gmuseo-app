@@ -93,3 +93,31 @@ ion-content {
   padding: 4px 16px 0;
   font-size: 0.8rem;
 }
+
+.submit__location {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 0;
+  font-size: 0.95rem;
+}
+
+.submit__location-ok {
+  color: var(--ion-color-success);
+}
+
+.submit__location-error {
+  color: var(--ion-color-danger);
+}
+
+.submit__catalogue-error {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.submit__missing {
+  display: block;
+  margin-top: 12px;
+}

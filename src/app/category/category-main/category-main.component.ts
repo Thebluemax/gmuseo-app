@@ -50,11 +50,6 @@ export class CategoryMainComponent implements OnInit {
 
   /** Grid cells are small: prefer the `sm` variant, fall back to the cover. */
   thumbnail(graffiti: Graffiti): string {
-    for (const sighting of graffiti.sightings) {
-      const photo = sighting.photos[0];
-      if (photo) return photo.files.sm;
-    }
-
-    return graffiti.cover;
+    return graffiti.photos[0]?.files.sm ?? graffiti.cover;
   }
 }
