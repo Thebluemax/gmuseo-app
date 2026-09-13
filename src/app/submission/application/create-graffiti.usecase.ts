@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { SubmissionRepository } from '../domain/submission.repository';
+import { SubmissionRepository, UploadProgressListener } from '../domain/submission.repository';
 import { CapturedPhoto, Coordinates, GraffitiState } from '../domain/models/submission.model';
 
 export interface CreateGraffitiInput {
@@ -17,7 +17,7 @@ export class CreateGraffitiUseCase {
   private repo = inject(SubmissionRepository);
 
   /** Creates the graffiti (with sighting + photos) in one request; returns its id. */
-  execute(input: CreateGraffitiInput): Promise<string> {
+  execute(input: CreateGraffitiInput, onProgress?: UploadProgressListener): Promise<string> {
     return this.repo.create(
       {
         category: input.category,
@@ -27,7 +27,8 @@ export class CreateGraffitiUseCase {
         state: input.state,
         description: input.description,
       },
-      input.photos.map((p) => p.blob)
+      input.photos.map((p) => p.blob),
+      onProgress,
     );
   }
 }

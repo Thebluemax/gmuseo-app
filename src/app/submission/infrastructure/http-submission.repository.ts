@@ -1,12 +1,13 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom, map } from 'rxjs';
-import { SubmissionRepository } from '../domain/submission.repository';
+import { SubmissionRepository, UploadProgressListener } from '../domain/submission.repository';
 import {
   Artist, NewGraffiti, UnauthorizedError, ValidationError,
 } from '../domain/models/submission.model';
 import { API_BASE_URL } from '../../shared/infrastructure/api.config';
 import { SecureTokenStorage } from '../../auth/domain/token-storage';
+import { UPLOAD_REQUEST } from './upload-request';
 
 interface CreatedGraffiti {
   id: string;
@@ -22,8 +23,9 @@ export class HttpSubmissionRepository extends SubmissionRepository {
   private http = inject(HttpClient);
   private baseUrl = inject(API_BASE_URL);
   private tokenStorage = inject(SecureTokenStorage);
+  private newRequest = inject(UPLOAD_REQUEST);
 
-  async create(graffiti: NewGraffiti, files: Blob[]): Promise<string> {
+  create(graffiti: NewGraffiti, files: Blob[], onProgress?: UploadProgressListener): Promise<string> {
     const form = new FormData();
     form.append('category', graffiti.category);
     // Omit artist_id when unset. Absence *is* unknown authorship: the server
@@ -35,47 +37,55 @@ export class HttpSubmissionRepository extends SubmissionRepository {
     if (graffiti.description) form.append('description', graffiti.description);
     files.forEach((file, i) => form.append('files[]', file, `graffiti-${i}.jpg`));
 
-    // Single multipart create (graffiti + first sighting + photos).
-    //
-    // CapacitorHttp (enabled globally) serializes request bodies as strings on
-    // native, which corrupts the binary image parts of a multipart FormData.
-    // Bypass it for this upload by using the WebView's original fetch, which
-    // CapacitorHttp preserves as `CapacitorWebFetch`. On web that global is
-    // absent, so we fall back to the real `fetch`. The API sends CORS headers
-    // for the app origin (https://localhost), so the cross-origin upload from
-    // the WebView is allowed. No Content-Type is set: fetch adds the multipart
-    // boundary itself.
-    const rawFetch: typeof fetch =
-      (globalThis as unknown as { CapacitorWebFetch?: typeof fetch }).CapacitorWebFetch ??
-      globalThis.fetch;
+    // Single multipart create (graffiti + first sighting + photos), on a raw
+    // XHR so the body leaves the WebView untouched by CapacitorHttp and its
+    // upload progress is visible (see upload-request.ts). No Content-Type is
+    // set: the browser adds the multipart boundary itself.
+    return this.send(form, onProgress);
+  }
 
-    const headers: Record<string, string> = { Accept: 'application/json' };
+  private async send(form: FormData, onProgress?: UploadProgressListener): Promise<string> {
     const token = await this.tokenStorage.getAccessToken();
-    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const xhr = this.newRequest();
 
-    const response = await rawFetch(`${this.baseUrl}/v1/graffitis`, {
-      method: 'POST',
-      headers,
-      body: form,
+    return new Promise<string>((resolve, reject) => {
+      let total = 0;
+      xhr.open('POST', `${this.baseUrl}/v1/graffitis`);
+      xhr.setRequestHeader('Accept', 'application/json');
+      if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+
+      xhr.upload.onprogress = (event) => {
+        if (!event.lengthComputable) return;
+        total = event.total;
+        onProgress?.({ sent: event.loaded, total: event.total });
+      };
+      // The body is out: from here the wait is the server's. Said once even
+      // when no progress event came, so the page can change phase.
+      xhr.upload.onload = () => onProgress?.({ sent: total || 1, total: total || 1 });
+
+      xhr.onload = () => {
+        // The bypass skips authInterceptor, so surface a dead session as a
+        // typed error the page can turn into a forced logout.
+        if (xhr.status === 401) return reject(new UnauthorizedError());
+        // 422 carries the reason — too many files, one too large, not an image.
+        // Surface it as the server wrote it: the form shows it next to the
+        // selection so the person can fix exactly that.
+        if (xhr.status === 422) return reject(toValidationError(xhr.responseText));
+        if (xhr.status < 200 || xhr.status >= 300) {
+          return reject(new Error(`La creación del graffiti falló (HTTP ${xhr.status}).`));
+        }
+        const id = parseCreatedId(xhr.responseText);
+        if (!id) return reject(new Error('La respuesta de creación no incluyó un id.'));
+        resolve(id);
+      };
+      // No response at all: the connection dropped, or the server never
+      // answered. The server may still have created the piece; the page says
+      // so is not known and lets the person retry with the selection intact.
+      xhr.onerror = () => reject(new Error('No se pudo enviar el graffiti. Comprueba la conexión y reintentá.'));
+      xhr.ontimeout = xhr.onerror;
+
+      xhr.send(form);
     });
-    // The bypass fetch skips authInterceptor, so surface a dead session as a
-    // typed error the page can turn into a forced logout.
-    if (response.status === 401) {
-      throw new UnauthorizedError();
-    }
-    // 422 carries the reason — too many files, one too large, not an image.
-    // Surface it as the server wrote it: the form shows it next to the
-    // selection so the person can fix exactly that.
-    if (response.status === 422) {
-      throw await toValidationError(response);
-    }
-    if (!response.ok) {
-      throw new Error(`La creación del graffiti falló (HTTP ${response.status}).`);
-    }
-    const body = (await response.json()) as { data?: CreatedGraffiti };
-    const id = body.data?.id;
-    if (!id) throw new Error('La respuesta de creación no incluyó un id.');
-    return id;
   }
 
   /** First page of the catalogue, for the optional picker in the advanced form. */
@@ -93,10 +103,10 @@ export class HttpSubmissionRepository extends SubmissionRepository {
  * messages are what say what went wrong ("The files.0 must not be greater than
  * 10240 kilobytes."); the top-level message only repeats the first of them.
  */
-async function toValidationError(response: Response): Promise<ValidationError> {
+function toValidationError(responseText: string): ValidationError {
   let body: { message?: string; errors?: Record<string, string[]> } = {};
   try {
-    body = await response.json();
+    body = JSON.parse(responseText);
   } catch {
     body = {};
   }
@@ -107,4 +117,13 @@ async function toValidationError(response: Response): Promise<ValidationError> {
     : body.message ?? 'El servidor rechazó el alta.';
 
   return new ValidationError(message, errors);
+}
+
+function parseCreatedId(responseText: string): string | null {
+  try {
+    const body = JSON.parse(responseText) as { data?: CreatedGraffiti };
+    return body.data?.id ?? null;
+  } catch {
+    return null;
+  }
 }
