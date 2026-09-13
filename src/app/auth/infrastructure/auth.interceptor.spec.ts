@@ -39,9 +39,10 @@ class StubTokenStorage extends SecureTokenStorage {
 }
 
 /**
- * The refresh path crosses several promise hops (repository, then the secure
- * storage write) before the retry is queued. One microtask is not enough to see
- * it; a macrotask is, and it keeps the test free of fake timers.
+ * The cycle is promise-based: the 401 reaches the refresh, and the refresh
+ * reaches the retry, across several promise hops (repository, then the secure
+ * storage write). One microtask is not enough to see either; a macrotask is,
+ * and it keeps the test free of fake timers.
  */
 const settle = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -142,6 +143,7 @@ describe('authInterceptor', () => {
       .expectOne(`${BASE_URL}/v1/graffitis`)
       .flush({ message: 'Unauthenticated.' }, { status: 401, statusText: 'Unauthorized' });
 
+    await settle();
     const refresh = httpMock.expectOne(`${BASE_URL}/v1/auth/refresh`);
     expect(refresh.request.headers.get('Authorization')).toBe(`Bearer ${REFRESH}`);
     refresh.flush({
@@ -180,6 +182,7 @@ describe('authInterceptor', () => {
       .expectOne(`${BASE_URL}/v1/graffitis`)
       .flush({ message: 'Unauthenticated.' }, { status: 401, statusText: 'Unauthorized' });
 
+    await settle();
     httpMock.expectOne(`${BASE_URL}/v1/auth/refresh`).flush({
       data: {
         access_token: '7|second-access',
@@ -201,16 +204,29 @@ describe('authInterceptor', () => {
     expect(reachedCaller).toBeTrue();
   });
 
-  it('should tear the session down when the retry is also rejected', () => {
-    pending(
-      'Diverges from identity/renovacion-de-sesion, scenario "El reintento vuelve a fallar", ' +
-        'which requires the client to log out at this point. It does not: handle401 calls ' +
-        'next(retried) from inside the observable the outer catchError returns, and RxJS does ' +
-        'not route those errors back into that catchError. The RETRIED branch is therefore ' +
-        'unreachable and the session is left in place while every request 401s. Recorded as a ' +
-        'divergence rather than fixed here: this change adds coverage, it does not change ' +
-        'behaviour.'
-    );
+  /**
+   * `identity/renovacion-de-sesion`, "El reintento vuelve a fallar": a token
+   * the server just issued and rejects anyway leaves nothing to renew, so the
+   * session goes. Used to be unreachable in the RxJS version of the cycle.
+   */
+  it('tears the session down when the retry is also rejected', async () => {
+    http.get(`${BASE_URL}/v1/graffitis`).subscribe({ error: () => undefined });
+
+    httpMock
+      .expectOne(`${BASE_URL}/v1/graffitis`)
+      .flush({ message: 'Unauthenticated.' }, { status: 401, statusText: 'Unauthorized' });
+    await settle();
+    httpMock.expectOne(`${BASE_URL}/v1/auth/refresh`).flush({
+      data: { access_token: '7|second-access', refresh_token: '8|second-refresh', token_type: 'Bearer', expires_in: 900 },
+    });
+    await settle();
+    httpMock
+      .expectOne(`${BASE_URL}/v1/graffitis`)
+      .flush({ message: 'Unauthenticated.' }, { status: 401, statusText: 'Unauthorized' });
+
+    await settle();
+    expect(await storage.getAccessToken()).toBeNull();
+    expect(auth.isAuthenticated()).toBeFalse();
   });
 
   it('shares one refresh between requests that expire together', async () => {
@@ -225,6 +241,7 @@ describe('authInterceptor', () => {
 
     // Three parallel refreshes would present a token the first one revoked, and
     // log out a session that was perfectly valid.
+    await settle();
     const refreshes = httpMock.match(`${BASE_URL}/v1/auth/refresh`);
     expect(refreshes.length).toBe(1);
     refreshes[0].flush({
@@ -251,6 +268,7 @@ describe('authInterceptor', () => {
       .expectOne(`${BASE_URL}/v1/graffitis`)
       .flush({ message: 'Unauthenticated.' }, { status: 401, statusText: 'Unauthorized' });
 
+    await settle();
     httpMock
       .expectOne(`${BASE_URL}/v1/auth/refresh`)
       .flush({ message: 'Unauthenticated.' }, { status: 401, statusText: 'Unauthorized' });

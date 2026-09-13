@@ -28,6 +28,34 @@ store — see [CLAUDE.md](CLAUDE.md#shared-contract).
 
 
 ### Fixed
+- **Uploading with an expired access token renews the session instead of
+  ending it.** The upload never went through `authInterceptor` (it bypasses
+  CapacitorHttp, which corrupts multipart bodies on native), so a 401 on
+  `POST /v1/graffitis` was turned straight into a forced logout: no
+  `auth/refresh`, the photo lost, the person back at the login screen. Seen on
+  the device twice, 2026-09-07 and 2026-09-13 (`401`, 0 renewals). The
+  renew-and-retry cycle now lives once in `AuthService.withSessionRetry()` and
+  both transports go through it: a 401 renews once and sends the body again
+  with the new token; a failed renewal or a second 401 ends the session with
+  the "session expired" notice. One in-flight renewal is shared across
+  transports, so an upload and an interceptor request expiring together spend
+  the rotating refresh token once.
+- The session is torn down when a request retried after a renewal is rejected
+  again, as `identity/renovacion-de-sesion` requires. The RxJS version of the
+  cycle could not reach that branch (recorded as a pending test above); the
+  promise-based one can, and the test now runs.
+
+### Changed
+- The upload leaves over a raw `XMLHttpRequest` (its four patched methods
+  restored from `CapacitorWebXMLHttpRequest`) instead of `CapacitorWebFetch`,
+  because only XHR reports how much of the body has been sent. The
+  `SubmissionRepository.create()` port takes an optional progress listener.
+- The feed loads the `md` photo variant (700px, ~112 KB) instead of `lg`
+  (1900px, ~536 KB), recreates the `<img>` per photo so a swipe never leaves
+  the previous photo on screen, shows a loading state until the photo is in,
+  says so in the slot when a photo fails, and preloads the previous/next photo
+  and the first photo of the next artwork.
+
 - Logging out revokes the session again — it had never revoked anything. The
   request left without an `Authorization` header, the server answered 401, and
   `AuthService.logout()` swallowed the error inside the `catch` that exists so a

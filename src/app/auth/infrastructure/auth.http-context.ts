@@ -15,12 +15,6 @@ export const SKIP_TOKEN = new HttpContextToken<boolean>(() => false);
 export const SKIP_REFRESH = new HttpContextToken<boolean>(() => false);
 
 /**
- * Set on a request after the interceptor has already retried it once following
- * a refresh. A second 401 then triggers logout instead of another refresh.
- */
-export const RETRIED = new HttpContextToken<boolean>(() => false);
-
-/**
  * The two rules used to be one flag, which forced logout to choose between
  * sending its credential and looping on refresh. It chose wrong, and logout
  * silently revoked nothing for as long as the flag existed. Keep them separate.

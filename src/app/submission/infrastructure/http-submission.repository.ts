@@ -6,7 +6,7 @@ import {
   Artist, NewGraffiti, UnauthorizedError, ValidationError,
 } from '../domain/models/submission.model';
 import { API_BASE_URL } from '../../shared/infrastructure/api.config';
-import { SecureTokenStorage } from '../../auth/domain/token-storage';
+import { AuthService, SessionRejectedError } from '../../auth/application/auth.service';
 import { UPLOAD_REQUEST } from './upload-request';
 
 interface CreatedGraffiti {
@@ -22,7 +22,7 @@ interface ArtistDto {
 export class HttpSubmissionRepository extends SubmissionRepository {
   private http = inject(HttpClient);
   private baseUrl = inject(API_BASE_URL);
-  private tokenStorage = inject(SecureTokenStorage);
+  private auth = inject(AuthService);
   private newRequest = inject(UPLOAD_REQUEST);
 
   create(graffiti: NewGraffiti, files: Blob[], onProgress?: UploadProgressListener): Promise<string> {
@@ -41,11 +41,14 @@ export class HttpSubmissionRepository extends SubmissionRepository {
     // XHR so the body leaves the WebView untouched by CapacitorHttp and its
     // upload progress is visible (see upload-request.ts). No Content-Type is
     // set: the browser adds the multipart boundary itself.
-    return this.send(form, onProgress);
+    //
+    // The bypass skips authInterceptor, so the session cycle is applied here
+    // by hand: a 401 renews once and sends the body again — twice the
+    // transfer, against losing the photo — and a second 401 ends the session.
+    return this.auth.withSessionRetry((token) => this.send(form, token, onProgress));
   }
 
-  private async send(form: FormData, onProgress?: UploadProgressListener): Promise<string> {
-    const token = await this.tokenStorage.getAccessToken();
+  private send(form: FormData, token: string | null, onProgress?: UploadProgressListener): Promise<string> {
     const xhr = this.newRequest();
 
     return new Promise<string>((resolve, reject) => {
@@ -64,9 +67,9 @@ export class HttpSubmissionRepository extends SubmissionRepository {
       xhr.upload.onload = () => onProgress?.({ sent: total || 1, total: total || 1 });
 
       xhr.onload = () => {
-        // The bypass skips authInterceptor, so surface a dead session as a
-        // typed error the page can turn into a forced logout.
-        if (xhr.status === 401) return reject(new UnauthorizedError());
+        // Rejected session: `withSessionRetry` renews and retries; if it gives
+        // up, the page receives the UnauthorizedError and says the session expired.
+        if (xhr.status === 401) return reject(new SessionRejectedError(new UnauthorizedError()));
         // 422 carries the reason — too many files, one too large, not an image.
         // Surface it as the server wrote it: the form shows it next to the
         // selection so the person can fix exactly that.

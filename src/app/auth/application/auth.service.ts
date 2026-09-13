@@ -4,6 +4,21 @@ import { AuthRepository } from '../domain/auth.repository';
 import { AuthUser, LoginCredentials, RegisterCredentials } from '../domain/auth.model';
 import { SecureTokenStorage } from '../domain/token-storage';
 
+/**
+ * Thrown by an attempt handed to `AuthService.withSessionRetry` when the
+ * server rejected the session (401). `cause` is what the caller gets if the
+ * session cannot be renewed.
+ */
+export class SessionRejectedError extends Error {
+  constructor(override readonly cause: unknown) {
+    super('The server rejected the session.');
+    this.name = 'SessionRejectedError';
+  }
+}
+
+/** One authenticated attempt: the access token to present, or null when there is none. */
+export type SessionAttempt<T> = (accessToken: string | null) => Promise<T>;
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private repo = inject(AuthRepository);
@@ -63,6 +78,35 @@ export class AuthService {
       // best-effort: revoke server-side, but always clear locally below
     } finally {
       await this.forceLogout();
+    }
+  }
+
+  // --- renew-and-retry -----------------------------------------------------------
+
+  /**
+   * The session contract of `identity/renovacion-de-sesion`, once, for every
+   * transport: run the attempt with the current token; if it reports the
+   * session rejected, renew once and run it again with the new token; if that
+   * is rejected too, or the renewal fails, the session is torn down and the
+   * original failure reaches the caller. The interceptor and the raw upload
+   * both go through here so neither can drift from the other again.
+   */
+  async withSessionRetry<T>(attempt: SessionAttempt<T>): Promise<T> {
+    try {
+      return await attempt(this.accessToken());
+    } catch (err) {
+      if (!(err instanceof SessionRejectedError)) throw err;
+      const renewed = await this.refresh();
+      // Refresh failed: forceLogout already ran inside it.
+      if (!renewed) throw err.cause;
+      try {
+        return await attempt(renewed);
+      } catch (again) {
+        if (!(again instanceof SessionRejectedError)) throw again;
+        // A token the server just issued and rejects anyway: nothing left to renew.
+        await this.forceLogout();
+        throw again.cause;
+      }
     }
   }
 

@@ -6,10 +6,10 @@ import {
   HttpInterceptorFn,
   HttpRequest,
 } from '@angular/common/http';
-import { Observable, catchError, from, switchMap, throwError } from 'rxjs';
-import { AuthService } from '../application/auth.service';
+import { Observable, from, lastValueFrom } from 'rxjs';
+import { AuthService, SessionRejectedError } from '../application/auth.service';
 import { API_BASE_URL } from '../../shared/infrastructure/api.config';
-import { RETRIED, SKIP_REFRESH, SKIP_TOKEN } from './auth.http-context';
+import { SKIP_REFRESH, SKIP_TOKEN } from './auth.http-context';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);
@@ -22,64 +22,44 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   // Force Accept on every API call — without it the backend 302-redirects
   // instead of returning JSON (known bug).
-  let apiReq = req.clone({ setHeaders: { Accept: 'application/json' } });
+  const apiReq = req.clone({ setHeaders: { Accept: 'application/json' } });
 
   // Two separate decisions: whether to attach the token, and whether a 401 may
   // be recovered by refreshing. Logout wants the first and not the second.
   const skipToken = apiReq.context.get(SKIP_TOKEN);
   const skipRefreshOn401 = apiReq.context.get(SKIP_REFRESH);
-  if (!skipToken) {
-    const token = auth.accessToken();
-    if (token) {
-      apiReq = apiReq.clone({ setHeaders: { Authorization: `Bearer ${token}` } });
-    }
+
+  const send = (token: string | null): Promise<HttpEvent<unknown>> =>
+    lastValueFrom(next(withToken(apiReq, skipToken ? null : token)));
+
+  // Auth endpoints (login/register/refresh/logout) handle their own failures
+  // (422 bad-creds, refresh 401, logout on an already-dead token, etc.).
+  if (skipRefreshOn401) {
+    return from(send(auth.accessToken()));
   }
 
-  return next(apiReq).pipe(
-    catchError((err: unknown) => {
-      if (!(err instanceof HttpErrorResponse)) {
-        return throwError(() => err);
+  // The renew-and-retry cycle lives in AuthService so the raw upload shares
+  // it; this interceptor only says what a rejection looks like over HTTP.
+  return from(
+    auth.withSessionRetry(async (token) => {
+      try {
+        return await send(token);
+      } catch (err: unknown) {
+        if (err instanceof HttpErrorResponse) {
+          // 403 = token lacks the required ability (dead/invalid session). Not
+          // recoverable by refresh — tear the session down, do not retry.
+          if (err.status === 403) {
+            await auth.forceLogout();
+            throw err;
+          }
+          if (err.status === 401) throw new SessionRejectedError(err);
+        }
+        throw err;
       }
-      // Auth endpoints (login/register/refresh/logout) handle their own failures
-      // (422 bad-creds, refresh 401, logout on an already-dead token, etc.).
-      if (skipRefreshOn401) {
-        return throwError(() => err);
-      }
-      // 403 = token lacks the required ability (dead/invalid session). Not
-      // recoverable by refresh — tear the session down, do not retry.
-      if (err.status === 403) {
-        return from(auth.forceLogout()).pipe(switchMap(() => throwError(() => err)));
-      }
-      if (err.status !== 401) {
-        return throwError(() => err);
-      }
-      // Already retried once after a refresh → token still rejected → logout.
-      if (apiReq.context.get(RETRIED)) {
-        return from(auth.forceLogout()).pipe(switchMap(() => throwError(() => err)));
-      }
-      return handle401(apiReq, next, auth, err);
     })
-  );
+  ) as Observable<HttpEvent<unknown>>;
 };
 
-function handle401(
-  req: HttpRequest<unknown>,
-  next: HttpHandlerFn,
-  auth: AuthService,
-  originalError: HttpErrorResponse
-): Observable<HttpEvent<unknown>> {
-  // Single-flight: concurrent 401s all await the same refresh promise.
-  return from(auth.refresh()).pipe(
-    switchMap((newToken) => {
-      if (!newToken) {
-        // Refresh failed; AuthService.forceLogout already ran.
-        return throwError(() => originalError);
-      }
-      req.context.set(RETRIED, true);
-      const retried = req.clone({
-        setHeaders: { Authorization: `Bearer ${newToken}` },
-      });
-      return next(retried);
-    })
-  );
+function withToken(req: HttpRequest<unknown>, token: string | null): HttpRequest<unknown> {
+  return token ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }) : req;
 }
