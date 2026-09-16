@@ -28,6 +28,15 @@ store — see [CLAUDE.md](CLAUDE.md#shared-contract).
 
 
 ### Fixed
+- The APK reports the version that is actually installed. `versionName` was the
+  literal `"1.0"` and `versionCode` a fixed `1`, so "which build is on the
+  phone" was a guess and an install over an older build was not guaranteed to
+  be treated as an update. `android/app/build.gradle` now reads the single
+  version in `package.json` — the one `npm version` moves on a release — and
+  derives `versionCode` from the semver (`major*10000 + minor*100 + patch`), so
+  it always grows. Checked on the device on 2026-09-13 with a debug build of
+  0.0.3: `adb shell dumpsys package` reported `versionCode=3`,
+  `versionName=0.0.3`.
 - Logging out revokes the session again — it had never revoked anything. The
   request left without an `Authorization` header, the server answered 401, and
   `AuthService.logout()` swallowed the error inside the `catch` that exists so a
