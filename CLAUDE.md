@@ -132,11 +132,13 @@ is XSS-readable.
 - Response fields: `id` (UUID), `name`, `description`
 
 **Graffitis** (`/api/v1/graffitis`):
-- `GET` — paginated `{data, links, meta}`; params `page`, `per_page` (default 20),
-  `category` (UUID), `artist` (UUID), `sort` (`latest` | `oldest`). `q` is
-  accepted but currently ignored — `graffitis` has no searchable text column.
-  Filtering by `artist` is what feeds `ArtistCollectionPage`.
-- `GET /{id}` — one graffiti
+- `GET` — paginated `{data, links, meta}`; params `page` (min 1), `per_page`
+  (1-100, default 20), `category` (UUID), `artist` (UUID), `sort` (`latest` |
+  `oldest`). There is no text search and no `q`; unknown params are ignored.
+  Each element is the artwork flattened — `photos[]`, `photos_count`,
+  `created_at` — with **no `sightings`**. Filtering by `artist` is what feeds
+  `ArtistCollectionPage`.
+- `GET /{id}` — one graffiti, with its `sightings`
 - `GET /{id}/sightings` — sightings of a graffiti
 - `POST /api/v1/graffitis` — **the alta**: auth + `create entry` permission, one
   `multipart/form-data` request that creates graffiti, first sighting and photos
