@@ -8,6 +8,23 @@ store — see [CLAUDE.md](CLAUDE.md#shared-contract).
 
 ## [Unreleased]
 
+### Changed
+- **API contract (backend `redisenar-el-modelo-de-roles-y-permisos`,
+  2026-09-15).** Public reads now respect visibility: an artwork or sighting
+  that the moderation hid or withdrew is absent from `GET /graffitis` and its
+  `meta.total`, answers 404 on `GET /graffitis/{id}`, and takes its photos out
+  of `photos` / `photos_count`. `active` had been published and filtered
+  nothing; from now on every element the client receives is `active: true`,
+  so the field is redundant on the client side and nothing here reads it.
+  The `artist` platform role no longer exists — it never reached the client,
+  which only knows `artist` as a catalogue reference on the artwork.
+- A bearer with a moderation permission receives extra keys (`visibility`,
+  `moderated_by`, `moderated_at`, `created_by`, `uploaded_by`) that the DTO
+  adapters ignore; a plain account sees `created_by` on its own artworks and
+  `uploaded_by` on its own photos, also ignored for now — the screen that would
+  use them (withdraw one's own photo) does not exist yet and is tracked as a
+  change of its own.
+
 ### Added
 - Coverage for the session flow, which had none: `auth.service.spec.ts` and
   `token-storage.spec.ts` are new, and `auth.interceptor.spec.ts` grew the cases
@@ -28,6 +45,15 @@ store — see [CLAUDE.md](CLAUDE.md#shared-contract).
 
 
 ### Fixed
+- The APK reports the version that is actually installed. `versionName` was the
+  literal `"1.0"` and `versionCode` a fixed `1`, so "which build is on the
+  phone" was a guess and an install over an older build was not guaranteed to
+  be treated as an update. `android/app/build.gradle` now reads the single
+  version in `package.json` — the one `npm version` moves on a release — and
+  derives `versionCode` from the semver (`major*10000 + minor*100 + patch`), so
+  it always grows. Checked on the device on 2026-09-13 with a debug build of
+  0.0.3: `adb shell dumpsys package` reported `versionCode=3`,
+  `versionName=0.0.3`.
 - Logging out revokes the session again — it had never revoked anything. The
   request left without an `Authorization` header, the server answered 401, and
   `AuthService.logout()` swallowed the error inside the `catch` that exists so a
