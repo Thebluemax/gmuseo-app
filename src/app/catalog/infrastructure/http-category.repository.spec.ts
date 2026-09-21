@@ -5,7 +5,6 @@ import {
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
 
-import { environment } from 'src/environments/environment';
 import { CategoryRepository } from '../domain/category.repository';
 import { HttpCategoryRepository } from './http-category.repository';
 import { API_BASE_URL } from '../../shared/infrastructure/api.config';
@@ -149,7 +148,7 @@ describe('HttpCategoryRepository', () => {
         ])
       );
 
-      expect(await pending).toBe(`${environment.mediaUrl}/gmuseo/photo_350.jpg`);
+      expect(await pending).toBe('/gmuseo/photo_350.jpg');
     });
 
     it('falls back to the graffiti cover when the artwork carries no photo', async () => {
@@ -169,7 +168,7 @@ describe('HttpCategoryRepository', () => {
         ])
       );
 
-      expect(await pending).toBe(`${environment.mediaUrl}/gmuseo/cover_700.jpg`);
+      expect(await pending).toBe('/gmuseo/cover_700.jpg');
     });
 
     it('answers null for a category with no graffiti', async () => {

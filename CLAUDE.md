@@ -109,9 +109,21 @@ renders on the category list alone.
 Base URL: `http://localhost/api` (local dev, through the nginx front). Routes are
 versioned under `/api/v1/` — `environment.apiUrl` is `/api` in dev (the
 `proxy.conf.json` ng-serve proxy forwards it, avoiding CORS) and repositories
-append `/v1/...` per endpoint. `environment.mediaUrl` roots photo URLs on the
-media host, because the API still returns absolute URLs to a legacy bucket.
+append `/v1/...` per endpoint. There is no media host in the app: photo URLs
+(`cover`, `files.*`) are used exactly as the API publishes them — the backend's
+`AWS_URL` decides where they live, and the adapter must not re-root them.
 Docs: `http://localhost/docs/api-docs.json`
+
+**Server selection:** `environment.apiUrl` is only the build default.
+`ServerConfig` (`shared/application/server-config.ts`) reads a URL persisted
+in Capacitor Preferences and falls back to it; `API_BASE_URL` is provided from
+`ServerConfig`, so the interceptor and every repository see the same URL. The
+login screen shows the active server and lets the user change it
+(`ChangeServerUseCase`, `auth/application/`): absolute URL, `https` unless the
+host is one of the cleartext hosts mirrored from
+`network_security_config.xml` (`shared/domain/cleartext-hosts.ts` — keep both
+lists in sync), probed with `GET /v1/version` before saving. Changing the
+server logs out and clears tokens before the app restarts on the new one.
 
 **Auth — Laravel Sanctum, access + refresh token pair:**
 - `POST /api/v1/auth/register` — 201, no tokens
@@ -212,6 +224,8 @@ Camera and geolocation are **core domain features** (submission flow). Haptics/k
 - **Native**: `npx cap sync && npx cap open ios|android` after `npm run build:prod`
 - **Docker**: multi-stage build, copies `www/` into nginx:alpine
 - **Environment**: `src/environments/environment.ts` (dev) / `environment.prod.ts` (prod).
-  They differ in `apiUrl` and `mediaUrl`, not only `appName`: dev goes through the
-  ng-serve proxy with a relative `/api`, prod calls
-  `https://gmuseo.maximilianofernandez.net/api` directly.
+  They differ in `apiUrl`, not only `appName`: dev goes through the ng-serve
+  proxy with a relative `/api`, prod calls
+  `https://gmuseo.maximilianofernandez.net/api` directly. `environment.lan.ts`
+  is kept only for the Android cleartext whitelist and `http` page scheme; with
+  the production APK, pointing at the LAN is done from the login screen.

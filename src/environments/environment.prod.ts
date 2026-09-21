@@ -7,10 +7,14 @@
  *
  * The path keeps the `/api` suffix: the proxy strips no prefix and Laravel's
  * routes live at /api/v1/...
+ *
+ * No media host: photo URLs are used as the API publishes them. The build used
+ * to re-root them on `r2.dev`, a Cloudflare address that Spanish operators
+ * block on match days; where the photos live is the server's decision
+ * (`/media/` behind the same host), not the app's.
  */
 export const environment = {
   production: true,
   appName: "Gmuseo",
   apiUrl: "https://gmuseo.maximilianofernandez.net/api",
-  mediaUrl: "https://pub-4d6737931296461eae081ca6bdb80b9e.r2.dev",
 };
