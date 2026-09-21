@@ -1,3 +1,5 @@
+@~/workspace/src/gitlab.com/specs/gmuseo-specs/CLAUDE.md
+
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
