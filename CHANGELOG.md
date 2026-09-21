@@ -8,7 +8,33 @@ store — see [CLAUDE.md](CLAUDE.md#shared-contract).
 
 ## [Unreleased]
 
+### Added
+- **Choose the API server from the login screen** (`entornos-autonomos`,
+  2026-09-21). The screen shows the server every request goes to and offers
+  "Cambiar servidor": an absolute URL, `https` unless the host is one of the
+  cleartext hosts mirrored from `network_security_config.xml`
+  (`shared/domain/cleartext-hosts.ts`), probed with `GET /api/v1/version`
+  before it is saved. A server that does not answer is not saved and the
+  screen says why; `http` to any other host is refused. Changing the server
+  with a session open logs out on the old one and wipes the tokens before the
+  first request to the new one. The choice lives in Capacitor Preferences
+  (`ServerConfig`, `shared/application/`) and `API_BASE_URL` is now provided
+  from it, so the interceptor and every repository see the same resolved URL
+  instead of the build constant; choosing the build default again drops the
+  entry. With this, the production APK can be pointed at a backend on the
+  developer's machine, and the `lan` build is kept only for the cleartext
+  whitelist and the `http` page scheme that live in the Android project.
+
 ### Changed
+- **Photo URLs are used as the API publishes them.** `graffiti-api.adapter.ts`
+  used to keep only the object path of every `cover` and `files.*` URL and
+  re-root it on `environment.mediaUrl`, a host baked into each build (MinIO's
+  LAN address in `dev`/`lan`, `r2.dev` in `prod`), so moving the media on the
+  server changed nothing in the app — and on 2026-09-13 the app showed no
+  photos at all while `r2.dev`'s addresses were blocked by Spanish operators
+  during a match. The adapter now copies the URLs as they arrive, absolute or
+  relative, and `mediaUrl` is gone from the three environments. Where the
+  photos live is the backend's decision, its `AWS_URL`.
 - **API contract (backend `redisenar-el-modelo-de-roles-y-permisos`,
   2026-09-15).** Public reads now respect visibility: an artwork or sighting
   that the moderation hid or withdrew is absent from `GET /graffitis` and its
