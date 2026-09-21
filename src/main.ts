@@ -1,12 +1,16 @@
 import { bootstrapApplication } from '@angular/platform-browser';
-import { provideAppInitializer, provideZonelessChangeDetection, inject } from '@angular/core';
+import {
+  Injector, provideAppInitializer, provideZonelessChangeDetection, inject,
+} from '@angular/core';
 import { provideRouter, RouteReuseStrategy, withPreloading, PreloadAllModules } from '@angular/router';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular/standalone';
 import { Capacitor } from '@capacitor/core';
 import { AppComponent } from './app/app.component';
 import { routes } from './app/app.routes';
-import { API_BASE_URL } from './app/shared/infrastructure/api.config';
+import { provideApiBaseUrl, ServerConfig } from './app/shared/application/server-config';
+import { ServerUrlStore } from './app/shared/domain/server-url.store';
+import { PreferencesServerUrlStore } from './app/shared/infrastructure/server-url.store.preferences';
 import { GraffitiRepository } from './app/graffiti/domain/repositories/graffiti.repository';
 import { HttpGraffitiRepository } from './app/graffiti/infrastructure/repositories/http-graffiti.repository';
 import { ArtistRepository } from './app/artists/domain/artist.repository';
@@ -28,7 +32,6 @@ import { CameraWeb } from './app/submission/infrastructure/camera.web';
 import { GeolocationPort } from './app/submission/domain/ports/geolocation.port';
 import { GeolocationNative } from './app/submission/infrastructure/geolocation.native';
 import { GeolocationWeb } from './app/submission/infrastructure/geolocation.web';
-import { environment } from './environments/environment';
 
 bootstrapApplication(AppComponent, {
   providers: [
@@ -37,7 +40,10 @@ bootstrapApplication(AppComponent, {
     provideIonicAngular(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
-    { provide: API_BASE_URL, useValue: environment.apiUrl },
+    // The API base URL is the one the device saved, else the build's
+    // (`environment.apiUrl`). Interceptor and repositories all read this token.
+    { provide: ServerUrlStore, useExisting: PreferencesServerUrlStore },
+    provideApiBaseUrl(),
     { provide: GraffitiRepository, useClass: HttpGraffitiRepository },
     { provide: CategoryRepository, useClass: HttpCategoryRepository },
     { provide: ArtistRepository, useClass: HttpArtistRepository },
@@ -54,7 +60,14 @@ bootstrapApplication(AppComponent, {
       provide: SecureTokenStorage,
       useClass: Capacitor.isNativePlatform() ? SecureTokenStorageNative : SecureTokenStorageWeb,
     },
-    // Rehydrate in-memory token signals from secure storage before routes resolve.
-    provideAppInitializer(() => inject(AuthService).hydrate()),
+    // Resolve the server first, then rehydrate the token signals from secure
+    // storage, all before routes resolve. One initializer, in this order:
+    // AuthService pulls in the auth repository, which reads `API_BASE_URL` the
+    // moment it is built, so it must not exist until the server is known.
+    provideAppInitializer(async () => {
+      const injector = inject(Injector);
+      await inject(ServerConfig).load();
+      await injector.get(AuthService).hydrate();
+    }),
   ],
 }).catch(console.error);
