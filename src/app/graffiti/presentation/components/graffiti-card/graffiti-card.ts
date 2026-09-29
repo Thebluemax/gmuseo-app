@@ -7,6 +7,7 @@ import { LazyLoadDirective } from '../../../../../../shared/directives/lazy-load
 @Component({
   selector: 'gm-graffiti-card',
   templateUrl: './graffiti-card.html',
+  styleUrls: ['./graffiti-card.scss'],
   imports: [IonCard, IonCardContent, RouterLink, LazyLoadDirective],
 })
 export class GraffitiCardComponent {
