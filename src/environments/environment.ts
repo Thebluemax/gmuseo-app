@@ -5,10 +5,9 @@
 export const environment = {
   production: false,
   appName: "Gmuseo",
-  // Relative in dev so the ng-serve proxy (proxy.conf.json) forwards to the API
-  // and avoids cross-origin CORS. Prod/native use the absolute URL.
-  apiUrl: "/api",
-  mediaUrl: "http://192.168.0.154:9000",
+  // Absolute URL to production API for dev testing (proxy not working).
+  // Device may override from login screen (see `ServerConfig`).
+  apiUrl: "https://gmuseo.maximilianofernandez.net/api/v1",
 };
 
 /*

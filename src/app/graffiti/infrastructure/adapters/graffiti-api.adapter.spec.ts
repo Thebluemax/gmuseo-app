@@ -1,4 +1,3 @@
-import { environment } from 'src/environments/environment';
 import {
   GraffitiDetailDto, GraffitiDto, GraffitiPhotoDto, toGraffiti, toGraffitiDetail,
 } from './graffiti-api.adapter';
@@ -141,13 +140,37 @@ describe('toGraffiti', () => {
       expect(graffiti.photos.length).toBe(2);
     });
 
-    it('re-roots every photo variant on the configured media host', () => {
+    /**
+     * The backend publishes the media host through `AWS_URL`; the client copies
+     * what it gets. Re-rooting on a host baked into the build was what kept
+     * `r2.dev` in the app after the server had moved on.
+     */
+    it('keeps an absolute photo URL exactly as the API publishes it', () => {
+      const { files } = toGraffiti(dto({
+        photos: [{
+          ...photo('a20c46cf-9670-4025-82f4-80e63c4accc8', 'photo'),
+          files: {
+            lg: 'https://gmuseo.maximilianofernandez.net/media/gmuseo/graffitis/photo_1900.jpg',
+            md: 'https://gmuseo.maximilianofernandez.net/media/gmuseo/graffitis/photo_700.jpg',
+            sm: 'http://192.168.0.154/media/gmuseo/graffitis/photo_350.jpg',
+            thumb: 'https://pub-4d6737931296461eae081ca6bdb80b9e.r2.dev/gmuseo/graffitis/photo_150.jpg',
+          },
+        }],
+      })).photos[0];
+
+      expect(files.lg).toBe('https://gmuseo.maximilianofernandez.net/media/gmuseo/graffitis/photo_1900.jpg');
+      expect(files.md).toBe('https://gmuseo.maximilianofernandez.net/media/gmuseo/graffitis/photo_700.jpg');
+      expect(files.sm).toBe('http://192.168.0.154/media/gmuseo/graffitis/photo_350.jpg');
+      expect(files.thumb).toBe('https://pub-4d6737931296461eae081ca6bdb80b9e.r2.dev/gmuseo/graffitis/photo_150.jpg');
+    });
+
+    it('keeps a relative photo path relative instead of inventing a host', () => {
       const { files } = toGraffiti(dto()).photos[0];
 
-      expect(files.lg).toBe(`${environment.mediaUrl}/gmuseo/graffitis/photo_1900.jpg`);
-      expect(files.md).toBe(`${environment.mediaUrl}/gmuseo/graffitis/photo_700.jpg`);
-      expect(files.sm).toBe(`${environment.mediaUrl}/gmuseo/graffitis/photo_350.jpg`);
-      expect(files.thumb).toBe(`${environment.mediaUrl}/gmuseo/graffitis/photo_150.jpg`);
+      expect(files.lg).toBe('/gmuseo/graffitis/photo_1900.jpg');
+      expect(files.md).toBe('/gmuseo/graffitis/photo_700.jpg');
+      expect(files.sm).toBe('/gmuseo/graffitis/photo_350.jpg');
+      expect(files.thumb).toBe('/gmuseo/graffitis/photo_150.jpg');
     });
 
     it('survives an artwork with no photos', () => {
@@ -189,12 +212,20 @@ describe('toGraffiti', () => {
     });
   });
 
-  it('re-roots an absolute URL pointing at the legacy bucket host', () => {
-    const graffiti = toGraffiti(
-      dto({ cover: 'http://bucket.gmuseo.com/gmuseo/graffitis/cover_700.jpg' })
-    );
+  describe('cover', () => {
+    it('keeps an absolute cover URL exactly as the API publishes it', () => {
+      const graffiti = toGraffiti(
+        dto({ cover: 'https://gmuseo.maximilianofernandez.net/media/gmuseo/graffitis/cover_700.jpg' })
+      );
 
-    expect(graffiti.cover).toBe(`${environment.mediaUrl}/gmuseo/graffitis/cover_700.jpg`);
+      expect(graffiti.cover).toBe(
+        'https://gmuseo.maximilianofernandez.net/media/gmuseo/graffitis/cover_700.jpg'
+      );
+    });
+
+    it('keeps a relative cover path relative', () => {
+      expect(toGraffiti(dto()).cover).toBe('/gmuseo/graffitis/cover_700.jpg');
+    });
   });
 
   describe('authorship', () => {

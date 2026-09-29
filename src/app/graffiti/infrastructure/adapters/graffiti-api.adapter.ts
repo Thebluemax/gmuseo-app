@@ -1,4 +1,3 @@
-import { environment } from 'src/environments/environment';
 import {
   Graffiti, GraffitiDetail, GraffitiPhoto, GraffitiSighting, PhotoFiles, SightingPhoto,
 } from '../../domain/models/graffiti.model';
@@ -57,25 +56,12 @@ export interface GraffitiDetailDto extends GraffitiDto {
 }
 
 /**
- * Root a media path on the configured media host. The API returns absolute
- * URLs to a legacy bucket host (bucket.gmuseo.com) that no longer serves the
- * files, so we keep only the object path and re-root it on `mediaUrl` (R2). A
- * relative path is prefixed directly.
+ * Photo URLs are copied as the API publishes them. The backend decides where
+ * its media lives (`AWS_URL` → `Storage::url()`), so the same build follows
+ * whichever server it is pointed at; the client must not re-root them on a host
+ * of its own. A relative path stays relative — inventing a host here would be
+ * the old bug back.
  */
-function mediaUrl(path: string): string {
-  if (!path) return '';
-  let rel = path;
-  if (/^https?:\/\//.test(path)) {
-    try {
-      const u = new URL(path);
-      rel = u.pathname + u.search;
-    } catch {
-      return path;
-    }
-  }
-  return `${environment.mediaUrl}${rel.startsWith('/') ? '' : '/'}${rel}`;
-}
-
 export function toGraffiti(dto: GraffitiDto): Graffiti {
   return {
     id: dto.id,
@@ -88,7 +74,7 @@ export function toGraffiti(dto: GraffitiDto): Graffiti {
     createdAt: dto.created_at ?? null,
     vote: dto.vote,
     active: dto.active,
-    cover: mediaUrl(dto.cover),
+    cover: dto.cover,
     photos: (dto.photos ?? []).map(toPhoto),
     photosCount: dto.photos_count,
   };
@@ -141,9 +127,9 @@ function toSightingPhoto(dto: SightingPhotoDto): SightingPhoto {
 
 function toFiles(dto: PhotoFilesDto): PhotoFiles {
   return {
-    lg: mediaUrl(dto.lg),
-    md: mediaUrl(dto.md),
-    sm: mediaUrl(dto.sm),
-    thumb: mediaUrl(dto.thumb),
+    lg: dto.lg,
+    md: dto.md,
+    sm: dto.sm,
+    thumb: dto.thumb,
   };
 }

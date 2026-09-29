@@ -45,6 +45,10 @@ export class GraffitiPage implements OnInit {
     void this.feed.retry();
   }
 
+  onRefresh(): void {
+    void this.feed.loadFirst();
+  }
+
   async onAppNameClick(): Promise<void> {
     if (this.authService.isAuthenticated()) {
       return;

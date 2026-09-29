@@ -33,3 +33,52 @@
     text-decoration: none;
   }
 }
+
+// Which API the app talks to, and the form to change it. Lives under the login
+// form: the one place a wrong server shows up as "wrong credentials".
+.server {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--ion-color-light-shade, #e0e0e0);
+
+  &__active {
+    margin: 0;
+    text-align: center;
+    color: var(--ion-color-medium, #888);
+    font-size: 0.8rem;
+    overflow-wrap: anywhere;
+  }
+
+  &__url {
+    color: var(--ion-color-dark, #222);
+  }
+
+  &__warning {
+    display: block;
+    color: var(--ion-color-warning-shade, #b8860b);
+  }
+
+  &__toggle {
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.9rem;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+  }
+
+  &__hint {
+    margin: 0;
+    color: var(--ion-color-medium, #888);
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+}

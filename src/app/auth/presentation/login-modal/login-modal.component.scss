@@ -42,5 +42,36 @@
 .login-modal__field {
   --background: transparent;
   --color: #fff;
+  --placeholder-color: #ccc;
   margin-bottom: 0.5rem;
+
+  ion-input {
+    color: #fff;
+    --placeholder-color: #ccc;
+  }
+
+  ::part(native) {
+    color: #fff !important;
+  }
+}
+
+.server {
+  color: #fff;
+
+  p, button {
+    color: #fff;
+  }
+
+  ion-item {
+    --background: transparent;
+    --color: #fff;
+  }
+
+  ion-input {
+    color: #fff;
+  }
+
+  ion-button {
+    --color: #fff;
+  }
 }

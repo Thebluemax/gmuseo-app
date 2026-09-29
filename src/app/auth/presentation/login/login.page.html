@@ -35,5 +35,72 @@
     </ion-button>
 
     <a class="login__link" routerLink="/auth/register">Crear cuenta</a>
+
+    <section class="server" aria-label="Servidor">
+      <p class="server__active">
+        Servidor: <code class="server__url">{{ server() }}</code>
+        @if (serverIsCleartext()) {
+          <span class="server__warning">Conexión sin cifrar (http).</span>
+        }
+      </p>
+
+      @if (!serverOpen()) {
+        <button type="button" class="login__link server__toggle" (click)="openServer()">
+          Cambiar servidor
+        </button>
+      } @else {
+        <ion-input
+          class="login__input server__input"
+          type="url"
+          inputmode="url"
+          fill="outline"
+          placeholder="https://servidor.ejemplo/api"
+          autocapitalize="off"
+          autocorrect="off"
+          [(ngModel)]="serverUrl">
+        </ion-input>
+
+        <p class="server__hint">
+          URL absoluta, con https. http solo para {{ cleartextHosts }} — los
+          únicos hosts a los que la app puede hablar sin cifrar. Se comprueba
+          con <code>GET /api/v1/version</code> antes de guardar. Cambiar de
+          servidor cierra la sesión.
+        </p>
+
+        @if (serverError()) {
+          <ion-text color="danger"><p class="login__error">{{ serverError() }}</p></ion-text>
+        }
+
+        <ion-button
+          class="server__save"
+          expand="block"
+          [disabled]="serverLoading()"
+          (click)="saveServer()">
+          @if (serverLoading()) {
+            <ion-spinner name="crescent"></ion-spinner>
+          } @else {
+            Comprobar y guardar
+          }
+        </ion-button>
+
+        @if (!serverIsDefault()) {
+          <button
+            type="button"
+            class="login__link server__toggle"
+            [disabled]="serverLoading()"
+            (click)="useDefaultServer()">
+            Volver al servidor por defecto
+          </button>
+        }
+
+        <button
+          type="button"
+          class="login__link server__toggle"
+          [disabled]="serverLoading()"
+          (click)="closeServer()">
+          Cancelar
+        </button>
+      }
+    </section>
   </div>
 </ion-content>

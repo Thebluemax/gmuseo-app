@@ -1,6 +1,6 @@
 <ion-card [routerLink]="['/tabs/catalog', graffiti().id]">
   @if (graffiti().cover) {
-    <img [src]="graffiti().cover" alt="Graffiti" />
+    <img [appLazyLoad]="graffiti().cover" [src]="placeholder" alt="Graffiti" />
   }
   <ion-card-content>
     <p>📷 {{ graffiti().photosCount }} · 👍 {{ graffiti().vote }}</p>

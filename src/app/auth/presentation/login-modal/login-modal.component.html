@@ -49,5 +49,39 @@
         Entrar
       }
     </ion-button>
+
+    <div class="server" style="margin-top: 20px; padding-top: 14px; border-top: 1px solid #e0e0e0;">
+      @if (!serverOpen()) {
+        <p style="margin: 0; text-align: center; color: #888; font-size: 0.8rem;">
+          Servidor: <code style="color: #222;">{{ server() || 'cargando...' }}</code>
+        </p>
+        <button type="button" style="background: none; border: 0; padding: 0; cursor: pointer; font-size: 0.9rem; color: #888; margin-top: 10px; width: 100%; text-align: center;" (click)="openServer()">
+          Cambiar servidor
+        </button>
+      } @else {
+        <ion-item lines="full">
+          <ion-input
+            type="url"
+            label="URL del servidor"
+            labelPlacement="floating"
+            placeholder="https://servidor/api"
+            [(ngModel)]="serverUrl">
+          </ion-input>
+        </ion-item>
+        <p style="margin: 10px 0; color: #888; font-size: 0.75rem; line-height: 1.4;">
+          URL absoluta con https. Se verifica con GET /api/v1/version.
+        </p>
+        <ion-button expand="block" [disabled]="serverLoading()" (click)="saveServer()">
+          @if (serverLoading()) {
+            <ion-spinner name="crescent"></ion-spinner>
+          } @else {
+            Comprobar y guardar
+          }
+        </ion-button>
+        <button type="button" style="background: none; border: 0; padding: 0; cursor: pointer; font-size: 0.9rem; color: #888; margin-top: 10px; width: 100%; text-align: center;" (click)="closeServer()">
+          Cancelar
+        </button>
+      }
+    </div>
   </div>
 </ion-content>

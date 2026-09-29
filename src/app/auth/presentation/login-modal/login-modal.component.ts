@@ -7,6 +7,7 @@ import {
 import { addIcons } from 'ionicons';
 import { closeOutline } from 'ionicons/icons';
 import { AuthService } from '../../application/auth.service';
+import { ServerConfig } from '../../../shared/application/server-config';
 
 @Component({
   selector: 'gm-login-modal',
@@ -21,11 +22,18 @@ import { AuthService } from '../../application/auth.service';
 export class LoginModalComponent {
   private authService = inject(AuthService);
   private modalCtrl = inject(ModalController);
+  private serverConfig = inject(ServerConfig);
 
   email = '';
   password = '';
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+
+  readonly server = this.serverConfig.apiUrl;
+  readonly serverOpen = signal(false);
+  serverUrl = '';
+  readonly serverLoading = signal(false);
+  readonly serverError = signal<string | null>(null);
 
   constructor() {
     addIcons({ closeOutline });
@@ -46,5 +54,27 @@ export class LoginModalComponent {
 
   dismiss(): void {
     this.modalCtrl.dismiss(null, 'cancel');
+  }
+
+  openServer(): void {
+    this.serverUrl = this.server();
+    this.serverOpen.set(true);
+  }
+
+  async saveServer(): Promise<void> {
+    this.serverLoading.set(true);
+    this.serverError.set(null);
+    try {
+      await this.serverConfig.save(this.serverUrl);
+      this.serverConfig.restart();
+    } catch (err) {
+      this.serverError.set(err instanceof Error ? err.message : 'Error al cambiar servidor');
+    } finally {
+      this.serverLoading.set(false);
+    }
+  }
+
+  closeServer(): void {
+    this.serverOpen.set(false);
   }
 }
