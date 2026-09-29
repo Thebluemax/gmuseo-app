@@ -1,4 +1,8 @@
 <ion-content [fullscreen]="true" [scrollY]="false" class="reels-content">
+  <ion-refresher (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
  <div class="reels-top">
     <button type="button" class="reels-top__brand" (click)="onAppNameClick()">
       {{ appName }}
