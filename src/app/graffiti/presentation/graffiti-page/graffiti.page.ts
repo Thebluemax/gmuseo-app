@@ -47,9 +47,8 @@ export class GraffitiPage implements OnInit {
   }
 
   onRefresh(event?: any): void {
-    void this.feed.loadFirst().then(() => {
-      event?.detail?.complete?.();
-    });
+    event?.detail?.complete?.();
+    void this.feed.loadFirst();
   }
 
   async onAppNameClick(): Promise<void> {
