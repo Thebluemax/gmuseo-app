@@ -1,3 +1,7 @@
+<ion-refresher (ionRefresh)="onRefresh($event)">
+  <ion-refresher-content></ion-refresher-content>
+</ion-refresher>
+
 @if (loading()) {
   <div class="loading-container">
     <ion-spinner name="crescent" />
