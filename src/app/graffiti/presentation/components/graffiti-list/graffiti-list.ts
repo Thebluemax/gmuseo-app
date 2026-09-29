@@ -8,6 +8,7 @@ import type { Graffiti } from '../../../domain/models/graffiti.model';
 @Component({
   selector: 'gm-graffiti-list',
   templateUrl: './graffiti-list.html',
+  styleUrls: ['./graffiti-list.scss'],
   imports: [
     IonGrid, IonRow, IonCol, IonSpinner, IonText, IonRefresher, IonRefresherContent, IonVirtualScroll,
     GraffitiCardComponent,
