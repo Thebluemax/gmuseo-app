@@ -2,7 +2,7 @@ import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { IonCard, IonCardContent } from '@ionic/angular/standalone';
 import type { Graffiti } from '../../../domain/models/graffiti.model';
-import { LazyLoadDirective } from '../../../../../../shared/directives/lazy-load.directive';
+import { LazyLoadDirective } from '../../../../shared/directives/lazy-load.directive';
 
 @Component({
   selector: 'gm-graffiti-card',
