@@ -2,7 +2,6 @@ import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
   IonButton, IonIcon, IonContent, IonSpinner, IonFab, IonFabButton,
-  IonRefresher, IonRefresherContent,
   ModalController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -18,7 +17,7 @@ import { environment } from 'src/environments/environment';
   templateUrl: './graffiti.page.html',
   styleUrls: ['./graffiti.page.scss'],
   imports: [
-    IonButton, IonIcon, IonContent, IonSpinner, IonFab, IonFabButton, IonRefresher, IonRefresherContent,
+    IonButton, IonIcon, IonContent, IonSpinner, IonFab, IonFabButton,
     RouterLink,
     GraffitiReelsComponent,
   ],
@@ -46,8 +45,7 @@ export class GraffitiPage implements OnInit {
     void this.feed.retry();
   }
 
-  onRefresh(event?: any): void {
-    event?.detail?.complete?.();
+  onRefresh(): void {
     void this.feed.loadFirst();
   }
 

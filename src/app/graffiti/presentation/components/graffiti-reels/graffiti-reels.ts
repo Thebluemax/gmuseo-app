@@ -29,6 +29,9 @@ export class GraffitiReelsComponent implements AfterViewInit, OnDestroy {
   /** Fires when the artwork on screen is the last one loaded: time to fetch more. */
   readonly reachedEnd = output<void>();
 
+  /** Fires on pull-to-refresh gesture (swipe down from top). */
+  readonly refresh = output<void>();
+
   readonly index = signal(0);
   readonly imageIndex = signal(0);
 
@@ -77,9 +80,16 @@ export class GraffitiReelsComponent implements AfterViewInit, OnDestroy {
   private onSwipe(dx: number, dy: number): void {
     const threshold = 50;
     if (Math.abs(dy) > Math.abs(dx)) {
+      // Pull-to-refresh: swipe down while at the top (index === 0)
+      if (dy > threshold && this.index() === 0) {
+        this.refresh.emit();
+        return;
+      }
+      // Normal navigation: vertical swipes
       if (dy < -threshold) this.step(this.index, this.graffitis().length, +1, true);
       else if (dy > threshold) this.step(this.index, this.graffitis().length, -1, true);
     } else {
+      // Horizontal swipes: image navigation
       if (dx < -threshold) this.step(this.imageIndex, this.images().length, +1, false);
       else if (dx > threshold) this.step(this.imageIndex, this.images().length, -1, false);
     }
