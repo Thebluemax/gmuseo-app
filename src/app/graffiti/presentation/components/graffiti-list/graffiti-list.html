@@ -15,13 +15,21 @@
 }
 
 @if (!loading() && graffitis().length > 0) {
-  <ion-grid>
-    <ion-row>
-      @for (graffiti of graffitis(); track graffiti.id) {
-        <ion-col size="6">
-          <gm-graffiti-card [graffiti]="graffiti" />
-        </ion-col>
-      }
-    </ion-row>
-  </ion-grid>
+  @if (useVirtualScroll()) {
+    <ion-virtual-scroll [items]="graffitis()" approxItemHeight="200px">
+      <div *virtualItem="let graffiti" class="virtual-item">
+        <gm-graffiti-card [graffiti]="graffiti" />
+      </div>
+    </ion-virtual-scroll>
+  } @else {
+    <ion-grid>
+      <ion-row>
+        @for (graffiti of graffitis(); track graffiti.id) {
+          <ion-col size="6">
+            <gm-graffiti-card [graffiti]="graffiti" />
+          </ion-col>
+        }
+      </ion-row>
+    </ion-grid>
+  }
 }
