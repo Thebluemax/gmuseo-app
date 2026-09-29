@@ -4,6 +4,11 @@ import { AuthRepository } from '../domain/auth.repository';
 import { AuthUser, LoginCredentials, RegisterCredentials } from '../domain/auth.model';
 import { SecureTokenStorage } from '../domain/token-storage';
 
+// Simple logging for mobile debugging
+const log = (label: string, data?: any) => {
+  console.log(`[AUTH] ${label}`, data ?? '');
+};
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private repo = inject(AuthRepository);
@@ -31,18 +36,23 @@ export class AuthService {
    * route resolves.
    */
   async hydrate(): Promise<void> {
+    log('hydrate: loading from storage...');
     const [access, refresh] = await Promise.all([
       this.storage.getAccessToken(),
       this.storage.getRefreshToken(),
     ]);
+    log('hydrate: loaded', { hasAccess: !!access, hasRefresh: !!refresh });
     this._accessToken.set(access);
     this._refreshToken.set(refresh);
   }
 
   async login(credentials: LoginCredentials): Promise<void> {
+    log('login: starting...', { email: credentials.email });
     // 422 (bad credentials) rejects → surfaced to the caller (login page).
     const res = await this.repo.login(credentials);
+    log('login: got tokens from api');
     await this.persist(res.access_token, res.refresh_token);
+    log('login: tokens persisted', { hasAccess: !!res.access_token, hasRefresh: !!res.refresh_token });
   }
 
   /**
@@ -83,16 +93,23 @@ export class AuthService {
   }
 
   private async doRefresh(): Promise<string | null> {
+    log('refresh: starting...');
     const refreshToken = this._refreshToken();
+    log('refresh: refreshToken exists?', { hasRefreshToken: !!refreshToken });
     if (!refreshToken) {
+      log('refresh: no refresh token, force logout');
       await this.forceLogout();
       return null;
     }
     try {
+      log('refresh: calling api with refresh token');
       const res = await this.repo.refresh(refreshToken);
+      log('refresh: got new tokens from api');
       await this.persist(res.access_token, res.refresh_token);
+      log('refresh: completed successfully', { hasNewAccess: !!res.access_token });
       return res.access_token;
-    } catch {
+    } catch (err) {
+      log('refresh: failed', { error: err instanceof Error ? err.message : String(err) });
       // Refresh itself rejected (expired / revoked / rotated away) → full logout.
       await this.forceLogout();
       return null;
@@ -102,17 +119,30 @@ export class AuthService {
   // --- internals --------------------------------------------------------------
 
   private async persist(access: string, refresh: string): Promise<void> {
+    log('persist: saving tokens to storage...');
     this._accessToken.set(access);
     this._refreshToken.set(refresh);
-    await this.storage.setTokens(access, refresh);
+    try {
+      await this.storage.setTokens(access, refresh);
+      log('persist: tokens saved successfully');
+    } catch (err) {
+      log('persist: storage error!', { error: err instanceof Error ? err.message : String(err) });
+      throw err;
+    }
   }
 
   /** Clear all auth state (memory + secure storage) and route to login. */
   async forceLogout(): Promise<void> {
+    log('forceLogout: clearing all auth state');
     this._accessToken.set(null);
     this._refreshToken.set(null);
     this._user.set(null);
-    await this.storage.clear();
+    try {
+      await this.storage.clear();
+      log('forceLogout: storage cleared');
+    } catch (err) {
+      log('forceLogout: storage clear failed', { error: err instanceof Error ? err.message : String(err) });
+    }
     await this.router.navigate(['/auth/login']);
   }
 }
