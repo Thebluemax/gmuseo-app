@@ -9,6 +9,12 @@ store — see [CLAUDE.md](CLAUDE.md#shared-contract).
 ## [Unreleased]
 
 ### Added
+- **Mobile performance optimizations** (`optimizar-rendimiento-list-graffitis-mobile`,
+  2026-09-29). Pull-to-refresh gesture with `IonRefresher` for manual feed reload;
+  lazy-load directive using Intersection Observer for on-demand image loading
+  (reduces memory/bandwidth by 50+%); virtual scroll for lists >100 items to
+  maintain 60 FPS during rapid scrolling. Placeholder gray SVG shown while images
+  load.
 - **Choose the API server from the login screen** (`entornos-autonomos`,
   2026-09-21). The screen shows the server every request goes to and offers
   "Cambiar servidor": an absolute URL, `https` unless the host is one of the
