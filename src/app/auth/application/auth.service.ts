@@ -1,13 +1,35 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { AuthRepository } from '../domain/auth.repository';
 import { AuthUser, LoginCredentials, RegisterCredentials } from '../domain/auth.model';
 import { SecureTokenStorage } from '../domain/token-storage';
+import { API_BASE_URL } from '../../shared/infrastructure/api.config';
 
-// Simple logging for mobile debugging
+// Simple logging for mobile debugging - saves to localStorage + console
+const logs: string[] = [];
 const log = (label: string, data?: any) => {
-  console.log(`[AUTH] ${label}`, data ?? '');
+  const ts = new Date().toISOString().split('T')[1].split('.')[0];
+  const msg = `[${ts}] [AUTH] ${label} ${data ? JSON.stringify(data) : ''}`;
+  console.log(msg);
+  logs.push(msg);
+  try {
+    localStorage.setItem('auth_logs', JSON.stringify(logs.slice(-100)));
+  } catch {
+    // ignore storage errors
+  }
 };
+
+// Expose logs globally for debugging
+if (typeof window !== 'undefined') {
+  (window as any).getAuthLogs = () => {
+    try {
+      return JSON.parse(localStorage.getItem('auth_logs') || '[]');
+    } catch {
+      return logs;
+    }
+  };
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
