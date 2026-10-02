@@ -8,6 +8,18 @@ store — see [CLAUDE.md](CLAUDE.md#shared-contract).
 
 ## [Unreleased]
 
+## [0.0.5] - 2026-10-02
+
+### Fixed
+- **Security hardening**: Mitigations to resolve detection as malware by Play Protect:
+  - Removed suspicious `update` package from dependencies (was unused, never imported)
+  - Enabled ProGuard/R8 code minification in Android release builds (code obfuscation)
+  - Disabled app backup in `AndroidManifest.xml` (`android:allowBackup=false`)
+  - Added certificate expiration validation script for release builds
+  - Integrated `npm audit --audit-level=moderate` into CI pipeline
+
+## [Unreleased]
+
 ### Changed
 - **API contract (backend `redisenar-el-modelo-de-roles-y-permisos`,
   2026-09-15).** Public reads now respect visibility: an artwork or sighting
