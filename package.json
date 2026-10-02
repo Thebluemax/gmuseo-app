@@ -45,8 +45,7 @@
     "@ionic/core": "^8.8.9",
     "ionicons": "^7.0.0",
     "rxjs": "~7.8.0",
-    "tslib": "^2.3.0",
-    "update": "^0.7.4"
+    "tslib": "^2.3.0"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^21.2.14",

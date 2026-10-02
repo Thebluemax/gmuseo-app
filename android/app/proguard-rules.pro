@@ -19,3 +19,16 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Preserve Capacitor plugin classes — they use reflection to call native methods
+-keep class com.capacitorjs.** { *; }
+-keep class io.ionic.** { *; }
+
+# Preserve app classes in case of dynamic loading (minimal; most will be obfuscated)
+-keep class io.gmuseo.MainActivity { *; }
+
+# Keep enum values for serialization (if any)
+-keepclassmembers enum * {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}
